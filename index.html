@@ -2442,11 +2442,8 @@ function _updateCheckupHeadline() {
   const item = _deck[_deckIdx].item;
   const emoji = CHECKUP_PHASE_EMOJI[item.phaseLabel] || '✦';
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
-      <span style="font-size:20px;line-height:1;">${emoji}</span>
-      <span style="font-size:18px;font-weight:700;line-height:1.3;">${item.phaseLabel}</span>
-    </div>
-    <div style="font-size:13px;color:var(--text-2);margin-bottom:8px;">${item.phaseTime} · Rate what played</div>
+    <div style="font-size:22px;font-weight:700;line-height:1.25;margin-bottom:4px;">Here's what played last night</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:8px;">${emoji} ${item.phaseLabel}</div>
   `;
 }
 
