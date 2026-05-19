@@ -1222,32 +1222,7 @@ body {
 <script>
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 
-// Contentful IMAGE_ assets return 403 — use gradient placeholders instead
-const PHOLDER = {
-  'IMAGE_recNRpC1ySSbmk1Rh': ['linear-gradient(145deg,#1a2a3a,#243a4a,#1a3040)', '🌧️'],
-  'IMAGE_reczE5HDA4MGzl242': ['linear-gradient(145deg,#0f1a2a,#1a2a3a,#0a1520)', '🌧️'],
-  'IMAGE_recBEZxpygD81C910': ['linear-gradient(145deg,#2a1a0a,#3a2a1a,#4a3520)', '🌫️'],
-  'IMAGE_recfkIpivA6rt9dkH': ['linear-gradient(145deg,#0a1a3a,#0f2040,#0a1530)', '🌊'],
-  'IMAGE_recBGX3klraQZqVjV': ['linear-gradient(145deg,#2a2010,#3a3020,#4a4030)', '✨'],
-  'IMAGE_recMOczs1gwBCZmiD': ['linear-gradient(145deg,#1a1a3a,#2a2a4a,#1a1a30)', '📚'],
-  'IMAGE_recBe4yE5xYzflESI': ['linear-gradient(145deg,#1a2030,#222838,#1a1a28)', '📖'],
-  'IMAGE_recKFad7ApNcdbgXj': ['linear-gradient(145deg,#3a1a0a,#4a2a1a,#5a3020)', '🌅'],
-  'IMAGE_rec64mmAhNLr2lVyQ': ['linear-gradient(145deg,#0a2a1a,#1a3a2a,#0f2820)', '🌲'],
-  'IMAGE_recSPbXBDSpXmUBFk': ['linear-gradient(145deg,#3a1a0a,#5a2a0a,#6a3a0a)', '⚡'],
-  'IMAGE_recL0fFY6NR9r3FRm': ['linear-gradient(145deg,#3a0a0a,#4a1a1a,#5a2020)', '💪'],
-  'IMAGE_recta6abBEAJFF8Wf': ['linear-gradient(145deg,#1a0a2a,#2a1a3a,#1a0a30)', '🎃'],
-  'IMAGE_recheEKtsZ6mw9Alb': ['linear-gradient(145deg,#1a2a3a,#2a3a4a,#1a2a35)', '🕊️'],
-  'IMAGE_reciy3OznfUJlbvQz': ['linear-gradient(145deg,#2a1a0a,#3a2a10,#4a3020)', '🌅'],
-  'IMAGE_recjZyWitgUTY0xUu': ['linear-gradient(145deg,#1a2a3a,#243a4a,#1a3040)', '🌧️'],
-  'IMAGE_recPLwVdSeJXgcZyo': ['linear-gradient(145deg,#1a2a1a,#2a3a2a,#1a3025)', '🐦'],
-};
-
 function _ci(url, alt, cls, extraAttrs = '') {
-  const assetId = (url || '').split('/')[5];
-  const ph = PHOLDER[assetId];
-  if (ph) {
-    return `<div class="${cls}" style="background:${ph[0]};display:flex;align-items:center;justify-content:center;font-size:2.5em;">${ph[1]}</div>`;
-  }
   return `<img class="${cls}" src="${url}" alt="${alt}" ${extraAttrs}>`;
 }
 
