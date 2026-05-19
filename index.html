@@ -1933,7 +1933,42 @@ function whyScreenHTML() {
       <div class="q-subtitle">Over time, patterns here can reveal a lot about your sleep.</div>
     </div>
     <div class="why-chips">${chipsHtml}</div>
-    <button class="save-btn" id="why-cta" style="background:#3FD5C0;margin-top:28px;opacity:0.4;pointer-events:none;" onclick="go(routineReviewHTML())">Continue →</button>
+    <button class="save-btn" id="why-cta" style="background:#3FD5C0;margin-top:28px;opacity:0.4;pointer-events:none;" onclick="go(checkinClosingHTML())">Continue →</button>
+  `;
+}
+
+const CLOSING_COPY = {
+  great: {
+    emoji: '🌟',
+    title: 'Great to hear.',
+    body: 'We\'ll keep track of what\'s working so you can see the patterns over time. Check back tomorrow morning.',
+  },
+  okay: {
+    emoji: '😊',
+    title: 'Good start.',
+    body: 'One night in. We\'ll keep building a picture as you go — the patterns get more useful over time.',
+  },
+  mixed: {
+    emoji: '📊',
+    title: 'Noted.',
+    body: 'Mixed nights are normal, especially at the start. We\'ll watch for patterns across your first few nights and let you know what we find.',
+  },
+  rough: {
+    emoji: '🌙',
+    title: 'Sorry it was a tough one.',
+    body: 'One rough night doesn\'t set the trend. We\'ll keep watching and look for what\'s behind it — patterns usually start showing up within a few nights.',
+  },
+};
+
+function checkinClosingHTML() {
+  const copy = CLOSING_COPY[S.q1] || CLOSING_COPY.okay;
+  return `
+    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 16px 0;">
+      <div style="font-size:52px;margin-bottom:20px;line-height:1;">${copy.emoji}</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:12px;line-height:1.25;">${copy.title}</div>
+      <div style="font-size:15px;color:var(--text-2);line-height:1.6;max-width:280px;margin-bottom:48px;">${copy.body}</div>
+      <button class="save-btn" style="background:#3FD5C0;width:100%;margin-top:0;" onclick="goBack(sleepTabHTML())">Back to Sleep</button>
+    </div>
   `;
 }
 
