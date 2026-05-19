@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
 <title>Hatch — First Night Flow</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1147,6 +1148,21 @@ body {
 .rec-swipe-done-title { font-size:18px; font-weight:700; margin-bottom:6px; }
 .rec-swipe-done-sub { font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:20px; }
 
+/* Why chips */
+.why-chips { display:flex; flex-wrap:wrap; gap:10px; }
+.why-chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  padding: 10px 18px;
+  font: 500 14px 'Inter', system-ui;
+  color: var(--text-1);
+  cursor: pointer;
+  transition: all .15s;
+}
+.why-chip:hover { border-color: var(--teal); background: var(--card-hi); }
+.why-chip.why-chip-selected { background: rgba(63,213,192,0.12); border-color: var(--teal); color: var(--text-1); font-weight: 600; }
+
 /* Debug toggle */
 .debug-bar {
   display:flex; align-items:center; justify-content:center; gap:8px;
@@ -1197,9 +1213,9 @@ body {
     <button class="proto-reset" onclick="resetFlow()">↺ Restart</button>
   </div>
   <div class="debug-bar">
-    <span class="active">List recs</span>
-    <div class="debug-sw" onclick="toggleRecMode()"></div>
-    <span>Swipe recs</span>
+    <span>List recs</span>
+    <div class="debug-sw on" onclick="toggleRecMode()"></div>
+    <span class="active">Swipe recs</span>
   </div>
 </div>
 
@@ -1891,10 +1907,44 @@ function sleepTabHTML() {
   `;
 }
 
+const WHY_CHIPS = {
+  great: ['Low stress week', 'Bedtime felt right', 'Good wind-down routine', 'Consistent schedule', 'Felt relaxed going to bed', 'Something else'],
+  okay:  ['Bedtime felt right', 'Good wind-down routine', 'Consistent schedule', 'Felt calm going to bed', 'Less screen time', 'Something else'],
+  mixed: ['Stress', 'Woke up during the night', 'Bedtime was off', 'Early mornings', 'Too hot or too cold', 'Caffeine or alcohol', 'Too much screen time', 'Something else'],
+  rough: ['Stress', 'Woke up during the night', 'Bedtime was off', 'Early mornings', 'Too hot or too cold', 'Sick or not feeling well', 'Caffeine or alcohol', 'Too much screen time', 'Partner, pet, or kid kept me up', 'Traveling', 'Something else'],
+};
+
 function pickQ1(val) {
   S.q1 = val;
   reviewState = {};
-  go(routineReviewHTML());
+  go(whyScreenHTML());
+}
+
+function whyScreenHTML() {
+  const chips = WHY_CHIPS[S.q1] || WHY_CHIPS.okay;
+  const chipsHtml = chips.map(c =>
+    `<button class="why-chip" onclick="pickWhy(this)">${c}</button>`
+  ).join('');
+  return `
+    <button class="back" onclick="goBack(sleepTabHTML())">← Back</button>
+    <div class="q-header" style="margin-bottom:24px;">
+      <div class="q-eyebrow" style="color:var(--teal);margin-bottom:10px;">FIRST NIGHT CHECK-IN</div>
+      <div class="q-title">What made it feel that way?</div>
+      <div class="q-subtitle">Over time, patterns here can reveal a lot about your sleep.</div>
+    </div>
+    <div class="why-chips">${chipsHtml}</div>
+    <button class="save-btn" id="why-cta" style="background:#3FD5C0;margin-top:28px;opacity:0.4;pointer-events:none;" onclick="go(routineReviewHTML())">Continue →</button>
+  `;
+}
+
+function pickWhy(btn) {
+  btn.classList.toggle('why-chip-selected');
+  const anySelected = document.querySelectorAll('.why-chip-selected').length > 0;
+  const cta = document.getElementById('why-cta');
+  if (cta) {
+    cta.style.opacity = anySelected ? '1' : '0.4';
+    cta.style.pointerEvents = anySelected ? 'auto' : 'none';
+  }
 }
 
 // ── ROUTINE REVIEW ────────────────────────────────────────────────────────────
@@ -2637,7 +2687,7 @@ function addRec(btn, label, phase, title, img) {
 
 // ── SWIPE RECS (V2) ──────────────────────────────────────────────────────────
 
-let _recMode = 'list'; // 'list' or 'swipe'
+let _recMode = 'swipe'; // 'list' or 'swipe'
 let _recDeck = [];
 let _recIdx = 0;
 let _recDrag = null;
