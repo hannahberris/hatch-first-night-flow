@@ -1,0 +1,3193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hatch — First Night Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg: #0D1626;
+  --card: #162035;
+  --card-hi: #1C2A43;
+  --border: #243049;
+  --teal: #3FD5C0;
+  --text-1: #EEF2FF;
+  --text-2: #7A8BA8;
+  --text-3: #3D4F6A;
+}
+
+body {
+  background: #060D1A;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--text-1);
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.outer { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+/* Phone */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  border-radius: 50px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 0 1.5px #1E2D4A, 0 0 0 3px #0A1020, 0 40px 100px rgba(0,0,0,0.7);
+  flex-shrink: 0;
+}
+
+.pill {
+  position: absolute;
+  top: 12px; left: 50%;
+  transform: translateX(-50%);
+  width: 126px; height: 36px;
+  background: #000;
+  border-radius: 20px;
+  z-index: 100;
+}
+
+.status {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 54px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 28px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 90;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--bg) 70%, transparent);
+}
+
+.content {
+  position: absolute;
+  top: 54px; left: 0; right: 0; bottom: 64px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+.content::-webkit-scrollbar { display: none; }
+
+/* Screen transitions */
+.screen {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  min-height: 100%;
+  padding: 20px 20px 28px;
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+}
+.screen.slide-in  { transform: translateX(0);    opacity: 1; }
+.screen.from-right{ transform: translateX(100%); opacity: 0; pointer-events: none; }
+.screen.from-left { transform: translateX(-15%); opacity: 0; pointer-events: none; }
+.screen.exit-left { transform: translateX(-15%); opacity: 0; pointer-events: none; }
+.screen.exit-right{ transform: translateX(100%); opacity: 0; pointer-events: none; }
+
+/* Shared UI */
+.back {
+  background: none; border: none;
+  color: var(--text-2);
+  font: 500 14px 'Inter', system-ui;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0; margin-bottom: 16px;
+  transition: color 0.15s;
+}
+.back:hover { color: var(--text-1); }
+
+.progress { display: flex; gap: 5px; margin-bottom: 20px; }
+.dot { height: 4px; border-radius: 2px; background: var(--border); transition: all 0.25s ease; }
+.dot.fill { width: 20px; background: var(--teal); }
+.dot.empty { width: 8px; }
+
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  font: 500 15px 'Inter', system-ui;
+  color: var(--text-1);
+  text-align: left;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+.opt:hover { background: var(--card-hi); border-color: var(--teal); transform: translateX(4px); }
+.opt-ico { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; }
+
+/* Sleep tab */
+.sleep-header { padding-top: 4px; margin-bottom: 18px; }
+.screen-title { font-size: 22px; font-weight: 700; }
+.screen-date { font-size: 13px; color: var(--text-2); margin-top: 3px; }
+
+.sleep-card {
+  background: linear-gradient(145deg, #162E4A, #0F1E35);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.sc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.sc-label { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .08em; }
+.sc-badge { background: rgba(63,213,192,.12); color: var(--teal); border: 1px solid rgba(63,213,192,.25); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+.sc-big { font-size: 38px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.sc-sub { font-size: 12px; color: var(--text-2); margin-bottom: 14px; }
+.sc-row { display: flex; border-top: 1px solid var(--border); padding-top: 12px; }
+.sc-stat { flex: 1; border-left: 1px solid var(--border); padding: 0 12px; }
+.sc-stat:first-child { border-left: none; padding-left: 0; }
+.sc-stat-val { font-size: 14px; font-weight: 600; }
+.sc-stat-lbl { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+.fn-card {
+  background: linear-gradient(135deg, #162844, #0F1E38);
+  border: 1px solid rgba(63,213,192,.2);
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .15s, transform .15s;
+}
+.fn-card:hover { border-color: rgba(63,213,192,.45); transform: translateY(-2px); }
+.fn-card::after {
+  content: '';
+  position: absolute; top: -50px; right: -50px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(63,213,192,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.fn-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(63,213,192,.1); color: var(--teal);
+  border-radius: 20px; padding: 3px 10px;
+  font-size: 11px; font-weight: 600; margin-bottom: 10px;
+}
+.fn-title { font-size: 17px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+.fn-body { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 16px; }
+.fn-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.fn-opt {
+  background: rgba(63,213,192,0.08);
+  border: 1.5px solid rgba(63,213,192,0.2);
+  border-radius: 12px;
+  padding: 10px 8px;
+  font: 500 13px 'Inter', system-ui;
+  color: var(--text-1);
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+}
+.fn-opt:hover { background: rgba(63,213,192,0.18); border-color: var(--teal); transform: scale(1.03); }
+
+/* Q screens */
+.q-header { padding-top: 4px; margin-bottom: 22px; }
+.q-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px; }
+.q-title { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+.q-subtitle { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+
+/* Branch intro */
+.bi-wrap {
+  border-radius: 20px; padding: 28px 20px;
+  text-align: center; margin-top: 8px; margin-bottom: 20px;
+}
+.bi-icon { font-size: 52px; margin-bottom: 16px; }
+.bi-title { font-size: 22px; font-weight: 700; line-height: 1.25; margin-bottom: 10px; }
+.bi-body { font-size: 14px; color: var(--text-2); line-height: 1.6; margin-bottom: 24px; }
+.bi-btn {
+  border: none; border-radius: 14px;
+  padding: 14px 0; font-size: 16px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+  width: 100%; color: #091422;
+  transition: opacity .15s;
+}
+.bi-btn:hover { opacity: .85; }
+
+/* Recs */
+.recs-header { padding-top: 4px; margin-bottom: 18px; }
+.recs-title { font-size: 20px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+.recs-sub { font-size: 13px; color: var(--text-2); }
+
+.rec {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 14px;
+  display: flex; align-items: flex-start; gap: 12px;
+  cursor: pointer; margin-bottom: 10px;
+  transition: all .15s;
+}
+.rec:hover { background: var(--card-hi); transform: translateX(4px); }
+.rec-ico { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.rec-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.rec-desc { font-size: 12px; color: var(--text-2); line-height: 1.4; }
+.rec-arr { color: var(--text-3); font-size: 20px; align-self: center; margin-left: auto; flex-shrink: 0; }
+
+.done-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px 20px;
+  text-align: center; margin-top: 4px;
+}
+.done-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.done-sub { font-size: 13px; color: var(--text-2); }
+
+/* Q2 option states */
+.q2-selected { border-color: var(--teal) !important; background: rgba(63,213,192,0.1) !important; }
+.q2-dimmed   { opacity: 0.35; pointer-events: none; }
+
+/* Rec reveal */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.rec-reveal { animation: revealUp 0.35s ease forwards; padding-top: 20px; }
+
+/* Guide card */
+.guide-card {
+  border: 1px solid;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.guide-icon  { font-size: 32px; margin-bottom: 10px; }
+.guide-headline { font-size: 16px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+.guide-body  { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+/* Customization */
+.customize-section { margin-bottom: 4px; }
+.cust-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.cust-label { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px; margin-top: 16px; }
+
+.btn-group { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 4px; }
+.seg-btn {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 13px;
+  font: 500 13px 'Inter', system-ui;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.seg-btn:hover { border-color: var(--teal); color: var(--text-1); }
+.seg-btn.active { background: rgba(63,213,192,0.12); border-color: var(--teal); color: var(--text-1); font-weight: 600; }
+
+/* Sound carousel */
+.sound-scroll {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  margin-bottom: 4px;
+}
+.sound-scroll::-webkit-scrollbar { display: none; }
+.sound-card {
+  flex-shrink: 0;
+  width: 76px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 6px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  scroll-snap-align: start;
+}
+.sound-card:hover { background: var(--card-hi); }
+.s-ico  { font-size: 22px; margin-bottom: 5px; }
+.s-name { font-size: 10px; color: var(--text-2); font-weight: 500; line-height: 1.25; }
+.s-wave {
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.sound-card.playing .s-wave { opacity: 1; }
+.s-wave span {
+  display: inline-block;
+  width: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+.s-wave span:nth-child(1) { height: 4px;  animation: waveBar .6s .00s ease-in-out infinite alternate; }
+.s-wave span:nth-child(2) { height: 9px;  animation: waveBar .6s .10s ease-in-out infinite alternate; }
+.s-wave span:nth-child(3) { height: 13px; animation: waveBar .6s .20s ease-in-out infinite alternate; }
+.s-wave span:nth-child(4) { height: 9px;  animation: waveBar .6s .30s ease-in-out infinite alternate; }
+.s-wave span:nth-child(5) { height: 4px;  animation: waveBar .6s .40s ease-in-out infinite alternate; }
+@keyframes waveBar { from { transform: scaleY(.4); } to { transform: scaleY(1); } }
+
+/* Save button */
+.save-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 15px 0;
+  font: 700 16px 'Inter', system-ui;
+  cursor: pointer;
+  color: #091422;
+  margin-top: 20px;
+  transition: opacity .15s;
+}
+.save-btn:hover { opacity: .85; }
+.save-btn:disabled { background: var(--teal) !important; cursor: default; opacity: 1; }
+
+/* Scroll picker */
+.picker-wrap {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.picker-highlight {
+  position: absolute;
+  top: 50%; left: 12px; right: 12px;
+  height: 44px;
+  transform: translateY(-50%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(63,213,192,0.07);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 8px;
+}
+.picker-mask {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, var(--card) 0%, transparent 32%, transparent 68%, var(--card) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+.picker-scroll {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  padding: 88px 0;
+}
+.picker-scroll::-webkit-scrollbar { display: none; }
+.picker-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--text-3);
+  scroll-snap-align: center;
+  cursor: pointer;
+  transition: color .12s, font-size .12s, font-weight .12s;
+  user-select: none;
+}
+.picker-item.selected { color: var(--text-1); font-size: 22px; font-weight: 700; }
+.picker-sublabel { font-size: 13px; color: var(--text-2); padding: 8px 0 18px; }
+
+/* Toggles */
+.toggle-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 14px 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.toggle-left { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 0; }
+.toggle-ico  { font-size: 24px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+.toggle-name { font-size: 15px; font-weight: 600; margin-bottom: 3px; }
+.toggle-desc { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+.toggle-sw {
+  width: 46px; height: 27px;
+  border-radius: 14px;
+  background: var(--text-3);
+  position: relative;
+  cursor: pointer;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.toggle-sw.on { background: var(--teal); }
+.toggle-k {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 21px; height: 21px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .2s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+}
+.toggle-sw.on .toggle-k { transform: translateX(19px); }
+
+/* For-you tag on chip */
+.for-you-chip {
+  display: inline-block;
+  background: rgba(63,213,192,0.18);
+  color: var(--teal);
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 5px;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+
+/* Recommended badge overlaid on card */
+.card-rec-tag {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 4;
+  background: rgba(10,20,35,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(63,213,192,0.55);
+  color: #3FD5C0;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* ── Routine review cards ── */
+.routine-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: border-color .25s;
+}
+.routine-card.reviewed-good    { border-color: rgba(63,213,192,0.35); }
+.routine-card.reviewed-explore { border-color: rgba(255,177,64,0.35); }
+
+.rc-header  { display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; }
+.rc-icon    { font-size:28px; flex-shrink:0; line-height:1; }
+.rc-name    { font-size:15px; font-weight:700; margin-bottom:3px; }
+.rc-summary { font-size:12px; color:var(--text-2); line-height:1.4; }
+
+.rc-actions { display:flex; gap:8px; }
+.rc-btn {
+  flex:1; padding:10px 8px;
+  border-radius:12px;
+  font:500 13px 'Inter',system-ui;
+  cursor:pointer;
+  border:1.5px solid var(--border);
+  background:var(--card-hi);
+  color:var(--text-2);
+  transition:all .15s;
+}
+.rc-btn:hover { border-color:var(--teal); color:var(--text-1); }
+.rc-btn.worked.active  { background:rgba(63,213,192,0.1); border-color:var(--teal); color:var(--teal); font-weight:600; }
+.rc-btn.explore.active { background:rgba(255,177,64,0.1); border-color:#FFB140; color:#FFB140; font-weight:600; }
+.rc-btn:disabled { cursor:default; }
+
+.rc-followup {
+  margin-top:14px; padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.rc-fq   { font-size:14px; font-weight:600; margin-bottom:10px; }
+.rc-opts { display:flex; flex-wrap:wrap; gap:7px; }
+.rc-opt  {
+  background:var(--card-hi);
+  border:1.5px solid var(--border);
+  border-radius:10px;
+  padding:7px 12px;
+  font:500 12px 'Inter',system-ui;
+  color:var(--text-2);
+  cursor:pointer;
+  transition:all .15s;
+}
+.rc-opt:hover    { border-color:var(--teal); color:var(--text-1); }
+.rc-opt.selected { background:rgba(255,177,64,0.1); border-color:#FFB140; color:var(--text-1); font-weight:600; }
+.rc-opt:disabled { cursor:default; }
+
+/* ── Short recs ── */
+.short-rec {
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.short-rec:hover { background:var(--card-hi); transform:translateX(4px); }
+.sr-eyebrow { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-2); margin-bottom:5px; }
+.sr-title   { font-size:15px; font-weight:700; margin-bottom:4px; }
+.sr-body    { font-size:13px; color:var(--text-2); line-height:1.45; margin-bottom:10px; }
+.sr-action  { font-size:13px; font-weight:600; color:var(--teal); }
+
+/* ── Phase layout (routine review) ── */
+.phase-block {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 9px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+}
+.phase-label {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em;
+  color: var(--text-2);
+}
+.phase-time { font-size: 11px; color: var(--text-3); font-weight: 500; }
+
+.phase-item {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  transition: background .2s;
+}
+.phase-header + .phase-item { border-top: none; }
+.phase-item.reviewed-good    { background: rgba(63,213,192,0.05); }
+.phase-item.reviewed-explore { background: rgba(255,177,64,0.05); }
+
+.pi-row      { margin-bottom: 12px; }
+.pi-name     { font-size: 14px; font-weight: 600; color: var(--text-1); margin-bottom: 7px; line-height: 1.25; }
+.pi-attrs    { display: flex; flex-wrap: wrap; gap: 6px; }
+.pi-attr     {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-2);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 3px 8px;
+  line-height: 1.3;
+}
+.pi-attr-ico { font-size: 13px; line-height: 1; }
+
+/* Vibe picker grid */
+.vibe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.vibe-card {
+  border-radius: 16px;
+  padding: 16px 14px;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  transition: all .18s;
+}
+.vibe-card:hover { transform: scale(1.02); }
+.vibe-ico  { font-size: 28px; margin-bottom: 7px; line-height: 1; }
+.vibe-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.vibe-sub  { font-size: 11px; color: var(--text-2); line-height: 1.35; }
+
+/* Light save btn */
+.light-save {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 0;
+  font: 700 15px 'Inter', system-ui;
+  cursor: pointer;
+  color: #091422;
+  margin-top: 14px;
+  transition: opacity .15s;
+}
+.light-save:hover { opacity: .85; }
+.light-save:disabled { opacity: 1; cursor: default; }
+
+/* Alarm category chips */
+.alarm-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.alarm-cat-btn {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 8px 14px;
+  font: 500 13px 'Inter', system-ui;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.alarm-cat-btn:hover  { border-color: #FFB140; color: var(--text-1); }
+.alarm-cat-btn.active { background: rgba(255,177,64,0.12); border-color: #FFB140; color: var(--text-1); font-weight: 600; }
+
+/* Card feed */
+.alarm-feed {
+  height: 300px;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  border-radius: 20px;
+  scrollbar-width: none;
+}
+.alarm-feed::-webkit-scrollbar { display: none; }
+
+.alarm-card {
+  height: 300px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.ac-art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 100px;
+  opacity: 0.22;
+  filter: blur(3px);
+  letter-spacing: 12px;
+  user-select: none;
+  padding-bottom: 60px;
+}
+.ac-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 72%;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  pointer-events: none;
+}
+.ac-content { position: relative; z-index: 2; padding: 16px 16px 14px; }
+.ac-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.ac-name { font-size: 22px; font-weight: 700; color: #fff; line-height: 1.15; }
+.ac-play {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  border: 1.5px solid rgba(255,255,255,0.35);
+  color: #fff; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0;
+  transition: background .15s;
+}
+.ac-play:hover   { background: rgba(255,255,255,0.3); }
+.ac-play.playing { background: rgba(63,213,192,0.45); border-color: #3FD5C0; }
+.ac-paired {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: rgba(255,255,255,0.65);
+  margin-bottom: 7px;
+}
+.ac-paired-dot { width: 8px; height: 8px; border-radius: 50%; background: #3FD5C0; flex-shrink: 0; }
+.ac-desc-row { display: flex; align-items: flex-start; gap: 8px; }
+.ac-desc { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.5; flex: 1; }
+.ac-heart {
+  background: none; border: none;
+  color: rgba(255,255,255,0.6); font-size: 20px;
+  cursor: pointer; flex-shrink: 0; line-height: 1;
+  transition: color .15s, transform .15s;
+  padding: 0;
+}
+.ac-heart.liked { color: #ff4a6a; transform: scale(1.2); }
+
+/* Vertical dots (right side of card) */
+.ac-side-dots {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  z-index: 3;
+}
+.ac-side-dot {
+  width: 4px; height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.35);
+  transition: all .2s;
+}
+.ac-side-dot.active { height: 16px; background: rgba(255,255,255,0.9); }
+
+/* Alarm select btn */
+.alarm-select-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 14px;
+  padding: 13px 0;
+  font: 600 15px 'Inter', system-ui;
+  color: #fff;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background .15s;
+  display: none;
+}
+.alarm-select-btn.visible { display: block; }
+.alarm-select-btn:hover   { background: rgba(255,255,255,0.2); }
+.alarm-select-btn.selected { background: #3FD5C0; color: #091422; border-color: #3FD5C0; }
+
+/* Feed wrapper (relative for overlay btn) */
+.alarm-feed-wrap { position: relative; }
+
+/* Proto bar */
+.proto-bar { display: flex; align-items: center; gap: 14px; }
+.proto-label { font-size: 11px; color: #2A3A56; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.proto-reset {
+  background: #131D30; border: 1px solid #243049;
+  color: var(--text-2); border-radius: 8px;
+  padding: 6px 14px; font-size: 12px;
+  font-family: inherit; cursor: pointer; font-weight: 500;
+  transition: all .15s;
+}
+.proto-reset:hover { background: var(--card); color: var(--text-1); }
+
+/* ── Routine check-up ── */
+.cu-phase-div {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: var(--text-3);
+  padding: 2px 0 10px; margin-top: 6px;
+}
+.cu-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  margin-bottom: 14px; transition: border-color .25s;
+}
+.cu-card.cu-liked { border-color: rgba(63,213,192,0.45); }
+.cu-card.cu-noped { border-color: rgba(255,80,80,0.3); }
+.cu-img { width: 100%; height: 172px; object-fit: cover; display: block; }
+.cu-body { padding: 14px 16px 16px; }
+.cu-step-lbl {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--text-3); margin-bottom: 6px;
+}
+.cu-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; line-height: 1.25; }
+.cu-desc  { font-size: 13px; color: var(--text-2); line-height: 1.5; margin-bottom: 14px; }
+.cu-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cu-btn {
+  padding: 11px 0; border-radius: 12px;
+  font: 600 14px 'Inter', system-ui; cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--card-hi); color: var(--text-2);
+  transition: all .15s;
+}
+.cu-btn.like:hover  { background: rgba(63,213,192,0.1); border-color: var(--teal); color: var(--teal); }
+.cu-btn.like.active { background: rgba(63,213,192,0.12); border-color: var(--teal); color: var(--teal); pointer-events:none; }
+.cu-btn.nope:hover  { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.38); color: #ff6060; }
+.cu-btn.nope.active { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.35); color: #ff6060; pointer-events:none; }
+.cu-chips { border-top: 1px solid var(--border); padding: 14px 0 2px; margin-top: 12px; animation: revealUp .25s ease forwards; }
+.cu-chips-lbl { font-size: 13px; font-weight: 600; color: var(--text-2); margin-bottom: 10px; }
+.cu-chip-row  { display: flex; flex-wrap: wrap; gap: 7px; }
+.cu-chip {
+  background: var(--card-hi); border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 7px 13px;
+  font: 500 12px 'Inter', system-ui; color: var(--text-2);
+  cursor: pointer; transition: all .15s;
+}
+.cu-chip:hover    { border-color: rgba(255,80,80,0.38); color: var(--text-1); }
+.cu-chip.selected { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.35); color: var(--text-1); font-weight: 600; pointer-events:none; }
+
+/* Check-up rec cards */
+.cu-rec-section { margin-bottom: 22px; }
+.cu-rec-eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.cu-rec-eyebrow.ev-like { color: var(--teal); }
+.cu-rec-eyebrow.ev-nope { color: var(--text-2); }
+.cu-rec-heading { font-size: 15px; font-weight: 700; margin-bottom: 12px; line-height: 1.35; }
+.cu-rec-scroll {
+  display: flex; gap: 10px;
+  overflow-x: auto; padding-bottom: 6px;
+  scroll-snap-type: x mandatory; scrollbar-width: none;
+}
+.cu-rec-scroll::-webkit-scrollbar { display: none; }
+.cu-rec-card {
+  flex-shrink: 0; width: 156px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  scroll-snap-align: start; cursor: pointer; transition: transform .15s;
+}
+.cu-rec-card:hover { transform: translateY(-2px); }
+.cu-rec-img-wrap { position: relative; }
+.cu-rec-img  { width: 100%; height: 96px; object-fit: cover; display: block; }
+.cu-rec-hatch-plus {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(13,22,38,0.78); backdrop-filter: blur(4px);
+  border: 1px solid rgba(63,213,192,0.35);
+  color: var(--teal); font: 600 9px 'Inter',system-ui;
+  padding: 2px 5px; border-radius: 4px; letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.cu-rec-info { padding: 9px 10px 12px; }
+.cu-rec-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.25; }
+.cu-rec-actions { margin-top: 6px; }
+.cu-rec-primary-row { display:flex; gap:6px; margin-bottom:6px; }
+.cu-rec-btn-eq {
+  flex:1; border:1px solid var(--border); border-radius:8px;
+  padding:7px 0; font:600 11px 'Inter',system-ui; color:var(--text-1);
+  background:var(--card-hi); cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+}
+.cu-rec-btn-eq:hover { border-color:var(--teal); color:var(--teal); }
+.cu-rec-btn-eq.playing { border-color:var(--teal); color:var(--teal); background:rgba(63,213,192,0.08); }
+.cu-rec-btn-eq.saved   { color:#ff6060; border-color:rgba(255,100,100,0.4); }
+.cu-rec-add {
+  display:block; background:none; border:none; padding:3px 0;
+  font:500 10px 'Inter',system-ui; color:var(--text-3);
+  cursor:pointer; transition:color .15s; width:100%; text-align:center; white-space:nowrap;
+}
+.cu-rec-add:hover { color:var(--teal); }
+.cu-rec-add.added { color:var(--teal); cursor:default; }
+.cu-phase-header {
+  font-size: 11px; font-weight: 700; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: .09em;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+/* ── SWIPE DECK ─────────────────────────────────────────────────────────── */
+.swipe-header { margin-bottom: 12px; }
+.swipe-dots { display:flex; justify-content:center; gap:7px; margin-top:10px; }
+.swipe-dot {
+  width:7px; height:7px; border-radius:50%;
+  background: var(--border); transition: all .25s ease;
+}
+.swipe-dot.active { width:20px; border-radius:3px; background: var(--text-2); }
+.swipe-dot.done-like { background: var(--teal); }
+.swipe-dot.done-nope { background: #ff6060; }
+
+.swipe-headline {
+  font-size:20px; font-weight:700; margin-bottom:6px; line-height:1.3;
+}
+.swipe-stage {
+  position: relative;
+  height: 456px;
+  margin-bottom: 20px;
+  perspective: 900px;
+}
+.swipe-card {
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 456px;
+  border-radius: 24px;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+  transition: transform 0.2s ease;
+  transform-style: preserve-3d;
+}
+.swipe-card-front, .swipe-card-back {
+  position: absolute; top:0; left:0; right:0; bottom:0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 24px;
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+.swipe-card-back {
+  transform: rotateY(180deg);
+}
+.swipe-card.flipped {
+  transition: transform 0.5s ease !important;
+  transform: rotateY(180deg) !important;
+}
+.swipe-card.is-top {
+  z-index: 10;
+  cursor: grab;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+  transition: none;
+}
+.swipe-card.is-top.snapping { transition: transform 0.25s ease; }
+.swipe-card.is-next  { z-index:9;  transform: scale(0.95) translateY(14px); }
+.swipe-card.is-third { z-index:8;  transform: scale(0.90) translateY(26px); }
+.swipe-card.fly-right { transition: transform 0.35s ease, opacity 0.35s ease !important; transform: translateX(140%) rotate(24deg) !important; opacity:0 !important; }
+.swipe-card.fly-left  { transition: transform 0.35s ease, opacity 0.35s ease !important; transform: translateX(-140%) rotate(-24deg) !important; opacity:0 !important; }
+.swipe-card.fly-up    { transition: transform 0.28s ease, opacity 0.28s ease !important; transform: translateY(-80px) scale(0.9) !important; opacity:0 !important; }
+
+.swipe-img { width:100%; height:210px; object-fit:cover; display:block; pointer-events:none; }
+.swipe-info { padding:16px 18px 18px; }
+.swipe-phase-lbl {
+  font-size:11px; font-weight:700; color:var(--text-2);
+  text-transform:uppercase; letter-spacing:.09em; margin-bottom:5px;
+}
+.swipe-step-name { font-size:13px; color:var(--text-2); margin-bottom:3px; }
+.swipe-title { font-size:19px; font-weight:700; line-height:1.25; margin-bottom:6px; }
+.swipe-desc  { font-size:13px; color:var(--text-2); line-height:1.5; }
+
+.swipe-ov {
+  position:absolute; top:18px;
+  font-size:26px; font-weight:800;
+  border: 3.5px solid; border-radius:10px;
+  padding:5px 14px; opacity:0;
+  pointer-events:none; transition:opacity .08s;
+}
+.swipe-ov-like { right:18px; color:var(--teal);  border-color:var(--teal);  transform:rotate(12deg); }
+.swipe-ov-nope { left:18px;  color:#ff6060; border-color:#ff6060; transform:rotate(-12deg); }
+
+.swipe-btns {
+  display:flex; justify-content:center; gap:36px;
+  padding-bottom: 4px;
+}
+.swipe-btn {
+  width:64px; height:64px; border-radius:50%; border:2px solid;
+  background:none; font-size:24px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition: transform .15s, background .15s;
+}
+.swipe-btn:active { transform: scale(0.9); }
+.swipe-btn-nope { border-color:rgba(255,96,96,.4); color:#ff6060; }
+.swipe-btn-nope:hover { background:rgba(255,96,96,.08); }
+.swipe-btn-like { border-color:rgba(63,213,192,.4); color:var(--teal); }
+.swipe-btn-like:hover { background:rgba(63,213,192,.08); }
+
+.swipe-followup {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; height:100%; padding:28px 22px;
+  text-align:center;
+}
+.swipe-fu-emoji { font-size:40px; margin-bottom:14px; }
+.swipe-fu-title { font-size:18px; font-weight:700; margin-bottom:5px; line-height:1.3; }
+.swipe-fu-sub   { font-size:13px; color:var(--text-2); margin-bottom:20px; line-height:1.45; font-style:italic; }
+.swipe-fu-chips { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:16px; }
+.swipe-fu-chip  {
+  background:var(--card-hi); border:1.5px solid var(--border);
+  border-radius:20px; padding:8px 15px;
+  font:500 13px 'Inter',system-ui; color:var(--text-1);
+  cursor:pointer; transition:all .15s;
+}
+.swipe-fu-chip:hover  { border-color:rgba(255,96,96,.4); color:#ff9090; }
+.swipe-fu-chip.picked { background:rgba(255,96,96,.08); border-color:rgba(255,96,96,.35); pointer-events:none; }
+.swipe-skip {
+  background:none; border:none; color:var(--text-3);
+  font:500 13px 'Inter',system-ui; cursor:pointer;
+  transition:color .15s; padding:4px 0;
+}
+.swipe-skip:hover { color:var(--text-2); }
+
+.swipe-done-wrap {
+  position:absolute; top:0; left:0; right:0; height:100%;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:24px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:32px 24px; text-align:center; z-index:20;
+  animation: revealUp .35s ease forwards;
+}
+.swipe-done-star { font-size:36px; margin-bottom:14px; color:var(--teal); }
+.swipe-done-title { font-size:19px; font-weight:700; line-height:1.3; margin-bottom:8px; }
+.swipe-done-sub   { font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:24px; }
+
+/* ── TAB BAR ─────────────────────────────────────────────────────────────── */
+.tab-bar {
+  position:absolute; bottom:0; left:0; right:0; height:64px;
+  background:rgba(10,16,32,0.97); border-top:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-around;
+  padding:0 8px 6px; z-index:50;
+}
+.tab-btn {
+  background:none; border:none; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:8px 16px; opacity:.45; transition:opacity .15s;
+}
+.tab-btn.active { opacity:1; }
+.tab-ico { font-size:18px; line-height:1; }
+.tab-lbl { font-size:11px; font-weight:600; color:var(--text-2); font-family:'Inter',system-ui; }
+.tab-btn.active .tab-lbl { color:var(--teal); }
+
+/* ── PLAN TAB ────────────────────────────────────────────────────────────── */
+.plan-h1 { font-size:26px; font-weight:700; margin-bottom:20px; }
+.plan-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
+.plan-tile {
+  background:#193a63; border-radius:12px; padding:12px;
+  cursor:pointer; transition:background .15s;
+}
+.plan-tile:hover { background:#1e4478; }
+.plan-tile-lbl { font-size:12px; color:var(--text-2); margin-bottom:8px; display:flex; align-items:center; gap:4px; }
+.plan-tile-time { font-size:22px; font-weight:700; line-height:1.1; margin-bottom:4px; }
+.plan-tile-sub  { font-size:12px; color:var(--text-2); }
+.plan-tile-inline { font-size:12px; color:var(--text-2); }
+.plan-tile-dot { margin:0 2px; }
+.plan-section-hd {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.plan-section-lbl { font-size:14px; color:var(--text-2); display:flex; align-items:center; gap:5px; }
+.plan-start-btn {
+  background:#fff; color:#0a1a34; border:none; border-radius:20px;
+  padding:6px 16px; font:700 13px 'Inter',system-ui; cursor:pointer;
+  display:flex; align-items:center; gap:5px;
+}
+.plan-row {
+  background:#193a63; border-radius:12px;
+  display:flex; align-items:center; gap:12px;
+  padding:8px 12px 8px 8px; margin-bottom:8px; cursor:pointer;
+  transition:background .15s;
+}
+.plan-row:hover { background:#1e4478; }
+.plan-row-thumb {
+  width:56px; height:56px; border-radius:8px;
+  object-fit:cover; flex-shrink:0;
+}
+.plan-row-info { flex:1; min-width:0; }
+.plan-row-title { font-size:14px; font-weight:600; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.plan-row-sub   { font-size:12px; color:var(--text-2); }
+.plan-row-chev  { color:var(--text-3); font-size:16px; flex-shrink:0; }
+.plan-add-row {
+  border:2px dashed var(--border); border-radius:12px;
+  padding:16px; text-align:center;
+  font-size:14px; color:var(--text-2); cursor:pointer;
+  margin-bottom:20px; transition:border-color .15s;
+}
+.plan-add-row:hover { border-color:var(--teal); color:var(--teal); }
+.plan-fav-h { font-size:16px; font-weight:700; margin-bottom:12px; }
+.plan-fav-empty { font-size:13px; color:var(--text-3); line-height:1.6; padding:16px 0; }
+.plan-fav-scroll {
+  display:flex; gap:8px; overflow-x:auto; padding-bottom:8px;
+  scrollbar-width:none; scroll-snap-type:x mandatory;
+}
+.plan-fav-scroll::-webkit-scrollbar { display:none; }
+.plan-fav-card {
+  flex-shrink:0; width:120px; height:185px;
+  border-radius:12px; overflow:hidden; position:relative;
+  background:var(--card); scroll-snap-align:start;
+}
+.plan-fav-img { width:100%; height:90px; object-fit:cover; display:block; }
+.plan-fav-heart {
+  position:absolute; top:8px; right:8px;
+  color:#ff6060; font-size:14px; pointer-events:none;
+}
+.plan-fav-body {
+  padding:8px; display:flex; flex-direction:column; gap:8px;
+  background:linear-gradient(to bottom, rgba(19,41,75,0.5), #13294b);
+  position:absolute; bottom:0; left:0; right:0;
+}
+.plan-fav-name { font-size:13px; font-weight:500; line-height:1.3; }
+.plan-fav-add {
+  background:#0a1a34; border:none; border-radius:20px;
+  padding:6px 0; font:600 12px 'Inter',system-ui;
+  color:#fff; cursor:pointer; width:100%; transition:opacity .15s;
+  display:flex; align-items:center; justify-content:center; gap:4px;
+}
+.plan-fav-add:hover { opacity:.8; }
+.plan-fav-add.added { color:var(--teal); }
+
+/* ── SWIPE RECS (V2) ─────────────────────────────────────────────────────── */
+.rec-swipe-phase-headline { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.rec-swipe-phase-emoji { font-size:24px; line-height:1; }
+.rec-swipe-phase-name { font-size:20px; font-weight:700; line-height:1.3; }
+.rec-swipe-context { font-size:14px; color:var(--text-2); line-height:1.45; margin-bottom:14px; }
+.rec-swipe-context em { color:var(--text-1); font-style:normal; font-weight:600; }
+.rec-swipe-stage { position:relative; height:420px; margin-bottom:12px; }
+.rec-swipe-card {
+  position:absolute; top:0; left:0; right:0; height:400px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:24px; overflow:hidden; user-select:none;
+  -webkit-user-select:none; will-change:transform;
+  transition:transform 0.2s ease;
+}
+.rec-swipe-card.is-top { z-index:10; cursor:grab; box-shadow:0 10px 40px rgba(0,0,0,0.45); transition:none; }
+.rec-swipe-card.is-top.snapping { transition:transform 0.25s ease; }
+.rec-swipe-card.is-next  { z-index:9;  transform:scale(0.96) translateY(20px); }
+.rec-swipe-card.is-third { z-index:8;  transform:scale(0.92) translateY(38px); }
+.rec-swipe-card.fly-right { transition:transform 0.35s ease, opacity 0.35s ease !important; transform:translateX(140%) rotate(24deg) !important; opacity:0 !important; }
+.rec-swipe-card.fly-left  { transition:transform 0.35s ease, opacity 0.35s ease !important; transform:translateX(-140%) rotate(-24deg) !important; opacity:0 !important; }
+.rec-swipe-img-wrap { position:relative; }
+.rec-swipe-img { width:100%; height:180px; object-fit:cover; display:block; pointer-events:none; }
+.rec-swipe-badge {
+  position:absolute; top:6px; right:6px;
+  background:rgba(13,22,38,0.78); backdrop-filter:blur(4px);
+  border:1px solid rgba(63,213,192,0.35); color:var(--teal);
+  font:600 9px 'Inter',system-ui; padding:2px 5px; border-radius:4px;
+  letter-spacing:0.02em; pointer-events:none;
+}
+.rec-swipe-info { padding:14px 18px 0; }
+.rec-swipe-name { font-size:18px; font-weight:700; line-height:1.25; margin-bottom:4px; }
+.rec-swipe-desc { font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:14px; }
+.rec-swipe-actions { display:flex; flex-direction:column; gap:8px; padding:0 18px 14px; }
+.rec-swipe-preview {
+  width:100%; border:none; background:var(--teal); border-radius:10px;
+  padding:12px 0; font:700 14px 'Inter',system-ui; color:#0a1a34;
+  cursor:pointer; transition:opacity .15s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.rec-swipe-preview:hover { opacity:.85; }
+.rec-swipe-preview.playing { background:rgba(63,213,192,.15); color:var(--teal); }
+.rec-swipe-add {
+  width:100%; border:1.5px solid var(--border); background:transparent; border-radius:10px;
+  padding:10px 0; font:600 13px 'Inter',system-ui; color:var(--text-2);
+  cursor:pointer; transition:all .15s;
+}
+.rec-swipe-add:hover { border-color:rgba(63,213,192,.35); color:var(--text-1); }
+.rec-swipe-add.added { border-color:rgba(63,213,192,.35); color:var(--teal); }
+.rec-swipe-ov {
+  position:absolute; top:18px; font-size:22px; font-weight:800;
+  border:3px solid; border-radius:10px; padding:4px 12px; opacity:0;
+  pointer-events:none; transition:opacity .08s;
+}
+.rec-swipe-ov-like { right:18px; color:var(--teal); border-color:var(--teal); transform:rotate(12deg); }
+.rec-swipe-ov-nope { left:18px; color:#ff6060; border-color:#ff6060; transform:rotate(-12deg); }
+.rec-swipe-counter {
+  text-align:center; font-size:12px; color:var(--text-3); margin-bottom:16px;
+}
+.rec-swipe-done {
+  text-align:center; padding:40px 20px;
+}
+.rec-swipe-done-star { font-size:32px; color:var(--teal); margin-bottom:12px; }
+.rec-swipe-done-title { font-size:18px; font-weight:700; margin-bottom:6px; }
+.rec-swipe-done-sub { font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:20px; }
+
+/* Debug toggle */
+.debug-bar {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-top:8px;
+}
+.debug-bar span { font-size:11px; color:var(--text-3); font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+.debug-bar span.active { color:var(--teal); }
+.debug-sw {
+  position:relative; width:36px; height:20px; border-radius:10px;
+  background:var(--card-hi); border:1px solid var(--border);
+  cursor:pointer; transition:background .2s;
+}
+.debug-sw.on { background:rgba(63,213,192,.25); border-color:rgba(63,213,192,.4); }
+.debug-sw::after {
+  content:''; position:absolute; top:2px; left:2px;
+  width:14px; height:14px; border-radius:50%;
+  background:var(--text-2); transition:transform .2s, background .2s;
+}
+.debug-sw.on::after { transform:translateX(16px); background:var(--teal); }
+</style>
+</head>
+<body>
+<div class="outer">
+  <div class="phone">
+    <div class="pill"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="sleep" onclick="switchTab('sleep')">
+        <span class="tab-ico">🌙</span><span class="tab-lbl">Sleep</span>
+      </button>
+      <button class="tab-btn" data-tab="plan" onclick="switchTab('plan')">
+        <span class="tab-ico">📋</span><span class="tab-lbl">Plan</span>
+      </button>
+      <button class="tab-btn" data-tab="library" onclick="switchTab('library')">
+        <span class="tab-ico">▤</span><span class="tab-lbl">Library</span>
+      </button>
+    </div>
+    <div class="status">
+      <span>9:41</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:10px;letter-spacing:1px">●●●●</span>
+        <span>🔋</span>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+  <div class="proto-bar">
+    <span class="proto-label">Prototype · First Night Flow</span>
+    <button class="proto-reset" onclick="resetFlow()">↺ Restart</button>
+  </div>
+  <div class="debug-bar">
+    <span class="active">List recs</span>
+    <div class="debug-sw" onclick="toggleRecMode()"></div>
+    <span>Swipe recs</span>
+  </div>
+</div>
+
+<script>
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+
+function hexRgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const Q2 = {
+  great: {
+    q: "What would make tonight's routine even better?",
+    sub: "Let's build on what's already working.",
+    opts: [
+      { e:'🌙', t:"Sticking to a consistent bedtime",       b:'bedtime'  },
+      { e:'⏰', t:"Making mornings feel even better",        b:'alarm'    },
+      { e:'✨', t:"Building a wind-down I actually enjoy",   b:'winddown' },
+      { e:'🔊', t:"Getting my sleep environment just right", b:'sounds'   }
+    ]
+  },
+  okay: {
+    q: "What would make the biggest difference for tonight?",
+    sub: "Even one small routine change can shift how you feel.",
+    opts: [
+      { e:'🌙', t:"Getting to bed at a consistent time",  b:'bedtime'  },
+      { e:'⏰', t:"How I wake up in the morning",          b:'alarm'    },
+      { e:'✨', t:"Winding down before I get into bed",    b:'winddown' },
+      { e:'🔊', t:"My sleep environment",                  b:'sounds'   }
+    ]
+  },
+  tough: {
+    q: "What would you most like to change for tonight?",
+    sub: "Let's find one thing to work on.",
+    opts: [
+      { e:'🌙', t:"Getting to bed at a consistent time",   b:'bedtime'  },
+      { e:'⏰', t:"How I wake up in the morning",           b:'alarm'    },
+      { e:'✨', t:"Winding down before I get into bed",     b:'winddown' },
+      { e:'🔊', t:"Things waking me up in the night",      b:'sounds'   }
+    ]
+  },
+  rough: {
+    q: "What would have made the biggest difference?",
+    sub: "Let's find one thing to build together.",
+    opts: [
+      { e:'🌙', t:"Getting to bed at a consistent time",   b:'bedtime'  },
+      { e:'⏰', t:"How I woke up this morning",             b:'alarm'    },
+      { e:'✨', t:"Winding down before I got into bed",     b:'winddown' },
+      { e:'🔊', t:"Noise or light waking me up",           b:'sounds'   }
+    ]
+  }
+};
+
+const BRANCHES = {
+  bedtime: {
+    color: '#FF6052', bg: 'rgba(255,96,82,0.08)', border: 'rgba(255,96,82,0.2)',
+    icon: '🌙',
+    headline: "A consistent bedtime is the most reliable habit you can build.",
+    guide: "Getting to bed at the same time each night — even on weekends — is more impactful than almost any other sleep change. Your body clock loves predictability. We'll make it easy to stick to.",
+    customization: 'bedtime'
+  },
+  alarm: {
+    color: '#FFB140', bg: 'rgba(255,177,64,0.08)', border: 'rgba(255,177,64,0.2)',
+    icon: '⏰',
+    headline: "How you wake up sets the tone for your whole day.",
+    guide: "Sunrise alarms wake your body gradually by using light to spike cortisol, so by the time your alarm sound goes off, you're already on your way up. Let's find the setup that works for you.",
+    customization: 'alarm'
+  },
+  winddown: {
+    color: '#9B85F5', bg: 'rgba(155,133,245,0.08)', border: 'rgba(155,133,245,0.2)',
+    icon: '✨',
+    headline: "Wind-down is the routine your brain needs to know sleep is coming.",
+    guide: "When you do the same thing each night before bed, your brain starts treating it as the cue that it's time to sleep. Falling asleep gets easier over time — and eventually, it just happens. Let's build yours.",
+    customization: 'winddown'
+  },
+  sounds: {
+    color: '#4A98F5', bg: 'rgba(74,152,245,0.08)', border: 'rgba(74,152,245,0.2)',
+    icon: '🔊',
+    headline: "The right sound becomes your brain's cue that sleep is coming.",
+    guide: "Consistent audio at bedtime quickly becomes a learned sleep trigger — your brain associates it with rest and starts slowing down before you even close your eyes. Let's find the one that feels right.",
+    customization: 'sounds'
+  }
+};
+
+const ROUTINE_PHASES = [
+  {
+    id: 'bedtime', label: 'Bedtime', time: '10:34 PM',
+    items: [
+      {
+        id: 'td',
+        name: 'Turndown Service',
+        attrs: [
+          { icon: '🕯️', label: 'Mint Tea scene' },
+          { icon: '🔊', label: 'Mint Tea soundscape' },
+        ],
+        q: 'What about it felt off?',
+        opts: ['Too bright','Too dim','The sound wasn\'t right','Started too early','Started too late','Wrong scene for the mood'],
+        recs_worked: [{ title:'A few other scenes worth saving', body:'Mint Tea is clearly landing. There are a handful of other vibes to browse — good to have options for when the mood shifts.', cta:'Browse scenes →', flow:'sounds' }],
+        recs: [
+          [{ title:'Dial back your Turndown light', body:'Lowering the brightness so it eases you in more gradually.', cta:'Adjust brightness →', flow:'bedtime' }],
+          [{ title:'Bring up your Turndown light', body:'A little more glow might make the cue feel more noticeable.', cta:'Adjust brightness →', flow:'bedtime' }],
+          [{ title:'Find a sound that fits the mood better', body:'Try a different Turndown scene — something that feels more like the version of home you want to come back to.', cta:'Browse scenes →', flow:'sounds' }],
+          [{ title:'Push your Turndown back a bit', body:'Setting it to start later might align better with how your evenings actually go.', cta:'Adjust timing →', flow:'bedtime' }],
+          [{ title:'Bring your Turndown forward', body:'Starting earlier gives you more room to actually wind down before bed.', cta:'Adjust timing →', flow:'bedtime' }],
+          [{ title:'Explore a different Turndown scene', body:'There are a few vibes to try — light, sound, or both. Find the one that feels like coming home.', cta:'Browse scenes →', flow:'sounds' }],
+        ]
+      }
+    ]
+  },
+  {
+    id: 'playlist', label: 'Bedtime Playlist', time: '11:05 PM',
+    items: [
+      {
+        id: 'pl-sunset',
+        name: 'Sunset',
+        attrs: [
+          { icon: '🌇', label: 'Warm glow → off · 20 min' },
+          { icon: '🔊', label: 'Mint Tea soundscape' },
+        ],
+        q: 'What about the sunset felt off?',
+        opts: ['Took too long','Faded too quickly','Too bright at the end','Started at the wrong time','Didn\'t notice it'],
+        recs_worked: [{ title:'Other sunset durations worth trying', body:'Your sunset is doing its job. A slightly shorter or longer fade might feel even more natural — worth a quick experiment.', cta:'Adjust sunset →', flow:'bedtime' }],
+        recs: [
+          [{ title:'Shorten your sunset', body:'A quicker fade can feel like a clearer "time to sleep" signal — less time lingering in the transition.', cta:'Adjust sunset →', flow:'bedtime' }],
+          [{ title:'Stretch out your sunset', body:'A slower, longer fade gives your body more runway to register the light shift before it goes dark.', cta:'Adjust sunset →', flow:'bedtime' }],
+          [{ title:'Lower the ending brightness', body:'If there\'s still too much glow at the end, dialing that down can help the room feel fully settled.', cta:'Adjust sunset →', flow:'bedtime' }],
+          [{ title:'Align your sunset with when you actually get into bed', body:'Matching the start time to your real bedtime makes the cue feel intentional rather than arbitrary.', cta:'Adjust timing →', flow:'bedtime' }],
+          [{ title:'Make your sunset more noticeable', body:'A brighter starting point makes the shift harder to miss — useful if the cue isn\'t landing.', cta:'Adjust sunset →', flow:'bedtime' }],
+        ]
+      },
+      {
+        id: 'pl-cast',
+        name: 'The Quiet Clearing',
+        attrs: [
+          { icon: '🎙️', label: 'Sleep Cast · 22 min' },
+        ],
+        q: 'What about it felt off?',
+        opts: ['Too long','Too short','Narrator wasn\'t my style','Kept me too alert','Want to try something different'],
+        recs_worked: [{ title:'More Sleep Casts like this one', body:'The Quiet Clearing is a solid pick. There\'s a whole library of similar sessions — worth saving a few for when you want variety.', cta:'Browse Sleep Casts →', flow:'winddown' }],
+        recs: [
+          [{ title:'Try a shorter Sleep Cast', body:'A 10-minute version might suit you better — less time to stay awake listening before sleep takes over.', cta:'Browse Sleep Casts →', flow:'winddown' }],
+          [{ title:'Try a longer Sleep Cast', body:'A longer session gives your mind more room to settle into the story before drifting off.', cta:'Browse Sleep Casts →', flow:'winddown' }],
+          [{ title:'Explore a different voice or world', body:'There are dozens of narrators and settings — a different one might land better for you.', cta:'Browse Sleep Casts →', flow:'winddown' }],
+          [{ title:'Swap the Cast for ambient music', body:'Some nights a wordless playlist works better than a guided story. Easy to try.', cta:'Browse playlists →', flow:'winddown' }],
+          [{ title:'Try a different kind of wind-down content', body:'Guided breathing or a meditation might be a better fit on nights when your mind is busier.', cta:'Browse content →', flow:'winddown' }],
+        ]
+      },
+      {
+        id: 'pl-sounds',
+        name: 'Ocean Waves',
+        attrs: [
+          { icon: '🔊', label: 'Sleep sounds · Overnight' },
+        ],
+        q: 'What about it felt off?',
+        opts: ['Woke me up during the night','Wasn\'t masking enough noise','Volume felt off','Not the right sound for me'],
+        recs_worked: [{ title:'Other sleep sounds worth saving', body:'Ocean Waves is working for you. A few others in the same family are worth adding to your favorites for when you want to switch it up.', cta:'Explore sleep sounds →', flow:'sounds' }],
+        recs: [
+          [{ title:'Try a non-rhythmic sound overnight', body:'Brown or white noise doesn\'t have a natural wave pattern — some people find it easier to sleep through.', cta:'Explore sleep sounds →', flow:'sounds' }],
+          [{ title:'Try something with more presence', body:'A denser sound covers more environmental noise — worth trying if things are waking you up mid-night.', cta:'Explore sleep sounds →', flow:'sounds' }],
+          [{ title:'Dial in your overnight volume', body:'The right level makes it helpful rather than intrusive. A small tweak can make a big difference.', cta:'Adjust volume →', flow:'sounds' }],
+          [{ title:'Find your overnight sound', body:'Rain, forest, white noise, brown noise — there\'s a full library. The right one usually becomes invisible.', cta:'Explore sleep sounds →', flow:'sounds' }],
+        ]
+      }
+    ]
+  },
+  {
+    id: 'rise', label: 'Rise Time', time: '6:46 AM',
+    items: [
+      {
+        id: 'rise',
+        name: 'Dawn Chorus',
+        attrs: [
+          { icon: '🌅', label: '20 min sunrise' },
+          { icon: '🔊', label: 'Dawn Chorus · 6:46 AM' },
+        ],
+        q: 'What about it felt off?',
+        opts: ['The sound was too jarring','The sunrise was too intense','The sunrise was too subtle','I kept hitting snooze','I woke up before it went off','Want to try something completely different'],
+        recs_worked: [{ title:'Other nature sounds worth favoriting', body:'Seems like nature is working for you — here are a few others in the same vibe to save for when you want to switch it up.', cta:'Explore more sounds →', flow:'alarm' }],
+        recs: [
+          [{ title:'Find a gentler alarm sound', body:'There\'s a whole catalog of softer options — nature, musical, classic. Something in there might feel a lot better.', cta:'Explore alarm sounds →', flow:'alarm' }],
+          [{ title:'Ease back the sunrise', body:'Shortening the duration or lowering the brightness can take it from jarring to gradual.', cta:'Adjust sunrise →', flow:'alarm' }],
+          [{ title:'Turn up the sunrise', body:'A longer lead-in or higher brightness might give you a more noticeable lift out of sleep.', cta:'Adjust sunrise →', flow:'alarm' }],
+          [{ title:'Try something with more momentum', body:'An alarm with a bit more energy might make it easier to actually get moving.', cta:'Explore alarm sounds →', flow:'alarm' }],
+          [{ title:'Nudge your alarm a little earlier', body:'If you\'re already stirring before it goes off, a small timing shift might be all you need.', cta:'Adjust alarm time →', flow:'alarm' }],
+          [{ title:'Explore a completely different vibe', body:'You might not have found your alarm yet. There\'s a lot to discover.', cta:'Explore alarm sounds →', flow:'alarm' }],
+        ]
+      }
+    ]
+  }
+];
+
+const SOUNDS_ALARM = [
+  { e:'🐦', n:'Morning Birds' }, { e:'🌅', n:'Soft Sunrise' },
+  { e:'🌊', n:'Ocean Waves'  }, { e:'🎵', n:'Gentle Chime' },
+  { e:'🌿', n:'Forest'       }, { e:'🔔', n:'Soft Bell'    },
+  { e:'🌸', n:'Spring'       }, { e:'🎶', n:'Acoustic'     },
+];
+
+const SOUNDS_SLEEP = [
+  { e:'🌫', n:'White Noise'   }, { e:'🟤', n:'Brown Noise' },
+  { e:'🌧', n:'Soft Rain'     }, { e:'🌊', n:'Ocean Waves' },
+  { e:'🌿', n:'Forest'        }, { e:'🔥', n:'Fireplace'   },
+  { e:'☕', n:'Coffee Shop'   }, { e:'🌙', n:'Night Crickets' },
+];
+
+const ALARM_CATS = {
+  nature: {
+    label:'Nature', emoji:'🌿',
+    cards:[
+      { name:'Dawn Chorus',   paired:'Morning Birds', desc:'Wake to the gentle chorus of birds as daylight breaks. Gradual, peaceful, unhurried.',                     grad:'linear-gradient(160deg,#1c4a2e,#2d7a4e,#52b87a)', art:'🌿🌱🍃' },
+      { name:'Misty Morning', paired:'Forest',         desc:'Soft rustling leaves and distant water bring you to the surface gently.',                                  grad:'linear-gradient(160deg,#1a3a2a,#2a5c3a,#4a8c5a)', art:'🌫️🌲🍀' },
+      { name:'Tide Pool',     paired:'Ocean Waves',    desc:'Rhythmic waves ease you up — like the tide coming in on its own schedule.',                                grad:'linear-gradient(160deg,#0f2a3a,#1a4a5a,#2a7a8a)', art:'🌊🐚💧' },
+    ]
+  },
+  energetic: {
+    label:'Energetic', emoji:'⚡️',
+    cards:[
+      { name:'Rise & Shine',  paired:'Upbeat Mix',  desc:'A bright, forward-moving beat that makes getting up feel like a choice, not a battle.',                     grad:'linear-gradient(160deg,#7a2a1a,#c04a1a,#f07030)', art:'⚡️🔥✨' },
+      { name:'Morning Run',   paired:'Pulse Beat',  desc:'Pulse-raising tempo to get blood moving before your feet hit the floor.',                                   grad:'linear-gradient(160deg,#5a1a2a,#9a2a3a,#d04a5a)', art:'🏃‍♂️💪🔥' },
+    ]
+  },
+  musical: {
+    label:'Musical', emoji:'🎵',
+    cards:[
+      { name:'Mint Tea',      paired:'Indie Pop', desc:'A warm, nostalgic pop melody that feels like a cozy mug in your hands on a cold night.',                      grad:'linear-gradient(160deg,#1a3a1a,#2a6a3a,#4aaa5a)', art:'🍃☕🎵' },
+      { name:'Golden Hour',   paired:'Acoustic',  desc:'Warm guitar that feels like sunlight on your face first thing in the morning.',                               grad:'linear-gradient(160deg,#4a3a0a,#8a6a1a,#c8982a)', art:'🌅🎸✨' },
+      { name:'Coffee Shop',   paired:'Lo-fi',     desc:'The ambient hum of a morning café — calm, alive, ready for the day.',                                         grad:'linear-gradient(160deg,#2a1a0a,#5a3a1a,#8a5a2a)', art:'☕🎶🌙' },
+    ]
+  },
+  classic: {
+    label:'Classic Tones', emoji:'🔔',
+    cards:[
+      { name:'Soft Chime',    paired:'Ascending Tone', desc:'A gentle ascending tone. No jarring, no jolt — just a quiet invitation to rise.',                        grad:'linear-gradient(160deg,#1a2a3a,#2a4a6a,#3a6a9a)', art:'🔔🌅💫' },
+      { name:'The Original',  paired:'Classic Bell',   desc:'The alarm that\'s been waking the world for decades. Reliable and unmistakable.',                        grad:'linear-gradient(160deg,#2a2a2a,#4a4a4a,#6a6a6a)', art:'⏰🔔📻' },
+    ]
+  },
+  surprise: { label:'Surprise Me', emoji:'✨', cards:[] }
+};
+
+const ALARM_VIBES = [
+  {
+    key:'nature',    emoji:'🌿', name:'Calm & Natural',
+    sub:'Birds, forest, gentle water',
+    catKey:'nature',
+    bg:'linear-gradient(145deg,rgba(28,74,46,0.55),rgba(45,122,78,0.3))',
+    border:'rgba(74,168,90,0.35)', color:'#52b87a'
+  },
+  {
+    key:'energetic', emoji:'⚡️', name:'Energetic',
+    sub:'High-energy beats to get moving',
+    catKey:'energetic',
+    bg:'linear-gradient(145deg,rgba(122,42,26,0.55),rgba(192,74,26,0.3))',
+    border:'rgba(240,112,48,0.35)', color:'#f07030'
+  },
+  {
+    key:'musical',   emoji:'🎵', name:'Musical',
+    sub:'Melodies that make mornings feel good',
+    catKey:'musical',
+    bg:'linear-gradient(145deg,rgba(26,58,26,0.55),rgba(42,106,58,0.3))',
+    border:'rgba(74,170,90,0.35)', color:'#4aaa5a'
+  },
+  {
+    key:'classic',   emoji:'🔔', name:'Classic Tones',
+    sub:'Simple, reliable, no surprises',
+    catKey:'classic',
+    bg:'linear-gradient(145deg,rgba(26,42,58,0.55),rgba(42,74,106,0.3))',
+    border:'rgba(58,106,154,0.35)', color:'#3a8ac0'
+  },
+];
+
+// ── ROUTINE CHECK-UP DATA ─────────────────────────────────────────────────────
+
+const TAG_CHIPS = {
+  rain:              ['sonic',      "I don't want rain"],
+  birds:             ['sonic',      "I don't want birds"],
+  ocean:             ['sonic',      "I don't want ocean sounds"],
+  water:             ['sonic',      "I don't want water sounds"],
+  wind:              ['sonic',      "I don't want wind"],
+  fire:              ['sonic',      "I don't want fire / crackling"],
+  forest:            ['sonic',      "I don't want forest sounds"],
+  'voice-led':       ['sonic',      "I don't want a narrator"],
+  instrumental:      ['sonic',      "I want something with a voice"],
+  piano:             ['sonic',      "I don't want piano"],
+  strings:           ['sonic',      "I don't want strings"],
+  synthesizer:       ['sonic',      "Too electronic / synthetic"],
+  asmr:              ['sonic',      "The trigger type"],
+  binaural:          ['sonic',      "The sensation in my ears"],
+  'tonal-drone':     ['sonic',      "The humming / droning"],
+  'white-noise':     ['sonic',      "White noise isn't for me"],
+  'field-recording': ['sonic',      "Too raw / outdoorsy"],
+  mechanical:        ['sonic',      "The mechanical sounds"],
+  'music-bed':       ['sonic',      "The music underneath"],
+  bright:            ['sonic',      "Too bright / sharp"],
+  nature:            ['sonic',      "Too much nature sound"],
+  floral:            ['sonic',      "The nature tones"],
+  'gentle-rise':     ['sonic',      "Built up too slowly"],
+  cozy:              ['vibe',       "Wasn't in the mood for cozy"],
+  serene:            ['vibe',       "Too calming"],
+  dreamy:            ['vibe',       "Story style wasn't my vibe"],
+  mysterious:        ['vibe',       "Too eerie"],
+  uplifting:         ['vibe',       "Too upbeat for the moment"],
+  playful:           ['vibe',       "Too playful"],
+  humorous:          ['vibe',       "Not the right humor"],
+  tender:            ['vibe',       "Too soft / emotional"],
+  grounded:          ['vibe',       "Didn't feel grounding"],
+  melancholic:       ['vibe',       "Too heavy / sad"],
+  nostalgic:         ['vibe',       "Didn't connect with the nostalgia"],
+  wonder:            ['vibe',       "Didn't feel like wonder"],
+  romantic:          ['vibe',       "Too romantic a vibe"],
+  anxious:           ['vibe',       "Made me feel more anxious"],
+  restless:          ['vibe',       "Felt restless"],
+  'pop-culture':     ['vibe',       "Not into the reference"],
+  sports:            ['vibe',       "Not a sports person"],
+  travel:            ['vibe',       "Didn't transport me"],
+  still:             ['sensory',    "Too still / quiet"],
+  layered:           ['sensory',    "Too layered / busy"],
+  minimal:           ['sensory',    "Not enough to hold my attention"],
+  rhythmic:          ['sensory',    "Too beat-heavy"],
+  smooth:            ['sensory',    "Too smooth / samey"],
+  textured:          ['sensory',    "The texture was distracting"],
+  'warm-tones':      ['sensory',    "Too warm / heavy"],
+  'cool-tones':      ['sensory',    "Too cold / clinical"],
+  intimate:          ['sensory',    "Felt too close"],
+  'wind-down':       ['outcome',    "Didn't help me wind down"],
+  'fall-asleep':     ['outcome',    "Didn't help me fall asleep"],
+  'stay-asleep':     ['outcome',    "Didn't help me stay asleep"],
+  'return-to-sleep': ['outcome',    "Didn't help me get back to sleep"],
+  decompress:        ['outcome',    "Didn't help me decompress"],
+  'drift-slowly':    ['outcome',    "Drifted off too slowly"],
+  'quick-drop':      ['outcome',    "Dropped off too fast"],
+  nap:               ['outcome',    "Wasn't right for a nap"],
+  'gentle-wake':     ['outcome',    "Didn't wake me up"],
+  'energized-wake':  ['outcome',    "Too jarring / high energy"],
+  focus:             ['outcome',    "Made it hard to focus"],
+  'emotional-reset': ['outcome',    "Didn't feel like a reset"],
+  presence:          ['outcome',    "Felt too 'in the room'"],
+  'ease-anxiety':    ['outcome',    "Didn't ease my anxiety"],
+  'racing-mind':     ['outcome',    "Didn't quiet my mind"],
+  foreground:        ['engagement', "Too engaging to fall asleep"],
+  background:        ['engagement', "Needed something more present"],
+  participatory:     ['engagement', "Didn't want to actively participate"],
+};
+
+const THEME_CHIP_PRIORITY = {
+  'Sleep Sounds':  ['sonic', 'sensory', 'outcome', 'vibe', 'engagement'],
+  'Stories':       ['sonic', 'vibe', 'engagement', 'sensory', 'outcome'],
+  'Sunrise Alarm': ['outcome', 'sonic', 'vibe', 'sensory', 'engagement'],
+  'Meditations':   ['outcome', 'sonic', 'vibe', 'sensory', 'engagement'],
+  'Music':         ['sonic', 'vibe', 'sensory', 'outcome', 'engagement'],
+  'Soundscapes':   ['sonic', 'sensory', 'vibe', 'outcome', 'engagement'],
+  'Sound Bath':    ['sonic', 'sensory', 'vibe', 'outcome', 'engagement'],
+  'Podcasts':      ['outcome', 'sonic', 'sensory', 'vibe', 'engagement'],
+  'ASMR':          ['sonic', 'sensory', 'vibe', 'outcome', 'engagement'],
+};
+
+function getChipsForItem(theme, tags) {
+  const priority = THEME_CHIP_PRIORITY[theme] || ['sonic', 'vibe', 'outcome', 'sensory', 'engagement'];
+  const byCategory = {};
+  for (const tag of tags) {
+    if (tag === 'voice-led') {
+      if (!byCategory.sonic) byCategory.sonic = [];
+      byCategory.sonic.push({ label: "Didn't like the narrator's voice", tag });
+      byCategory.sonic.push({ label: "I don't want a narrator", tag });
+      continue;
+    }
+    const entry = TAG_CHIPS[tag];
+    if (!entry) continue;
+    const [cat, chip] = entry;
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push({ label: chip, tag });
+  }
+  const chips = [];
+  for (const cat of priority) {
+    if (chips.length >= 4) break;
+    if (byCategory[cat]?.length) {
+      const limit = chips.length === 0 ? 2 : 1;
+      chips.push(...byCategory[cat].slice(0, limit));
+    }
+  }
+  return chips.slice(0, 4);
+}
+
+const REC_CATALOG = [
+  // Sleep Sounds — phase: Sleep
+  { title:'Rain on Canvas Tent', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['cozy','intimate','rain','nature','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recNRpC1ySSbmk1Rh/1bbe0291ec7c91351756d30bc6431fac/R3_SleepSounds_Rain_OnTent-Landscape.png',
+    desc:'Gentle raindrops patter on a canvas tent, evoking a sense of cozy solitude in nature.' },
+  { title:'Pouring Rain', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['immersive','layered','rain','nature','fall-asleep','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_reczE5HDA4MGzl242/4b4f064ceee07d70cc31b740d7d0eec3/R3_SleepSounds_Rain_Downpour-Landscape.png',
+    desc:'Heavy rain showers down, enveloping you in a natural, immersive storm.' },
+  { title:'Stormy Sea', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['dreamy','still','ocean','nature','expansive','serene','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/6niGkqQCrWCCZPcn1CbYPP/4e800932329e591d41f8a27d90e2f1e9/Sleepsound-StormySea-1600x1200-Comp.png',
+    desc:'A dark, dramatic sea rolls and crashes, filling the air with a deep, powerful sound.' },
+  { title:'Brown', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['grounded','warm-tones','tonal-drone','fall-asleep','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recBEZxpygD81C910/ec439aea9c7a8282fe92c03b21b87379/R3_SleepSounds_ColorNoise_Brown-Landscape.png',
+    desc:'Rich, deep sound frequencies bring warmth and grounding, like earth underfoot.' },
+  { title:'Hatch Navy', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['serene','cool-tones','water','fall-asleep','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recfkIpivA6rt9dkH/2967a013f8533ef4212daeac93bd40ff/R3_SleepSounds_ColorNoise_HatchNavy-Landscape-New.png',
+    desc:'Deep, tranquil sounds evoke the calm of midnight waters.' },
+  { title:'Ocean', tier:'free', theme:'Sleep Sounds', phase:'Sleep',
+    tags:['immersive','ocean','rhythmic','serene','fall-asleep','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/1yHFn1XhaYzm4ozbwBMpoE/7e68803b7724bff6ecb3e71b5a72fed3/Sleepsound-Ocean-Landscape.png',
+    desc:'The steady rhythm of ocean waves creates a soothing, hypnotic soundscape.' },
+  // Stories — phase: Unwind
+  { title:"Beekeeper's Manual", tier:'paid', theme:'Stories', phase:'Unwind',
+    tags:['dreamy','immersive','voice-led','fall-asleep','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/6jrimIfyDbwyKOCwgUIYf9/62d0d76cba60c8ef91a61905e91b6d97/1600x1200_Channel-SpokenWord-BeekeepersManual.png',
+    desc:"Find yourself immersed in the world of a bee-keeper — the intricacies of hives, the fascinating lives of bees." },
+  { title:'The Great Gatsby', tier:'free', theme:'Stories', phase:'Unwind',
+    tags:['dreamy','layered','voice-led','foreground','wind-down','fall-asleep'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recBGX3klraQZqVjV/1bfcf8ad7d244262d69222c45dc79783/HatchClassics-GreatGatsby-Landscape.png',
+    desc:'Drift through a world of glittering 1920s parties, whispered secrets and old flames rekindled.' },
+  { title:'Bedtime Stories Sampler', tier:'free', theme:'Stories', phase:'Unwind',
+    tags:['cozy','dreamy','voice-led','fall-asleep','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recMOczs1gwBCZmiD/124e025991ae85efff40526e5d657c92/BedtimeStories_Landscape_1600x1200.png',
+    desc:'Try out a different bedtime story each night.' },
+  { title:'Sunset Sound Baths', tier:'paid', theme:'Sound Bath', phase:'Unwind',
+    tags:['serene','warm-tones','layered','instrumental','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recKFad7ApNcdbgXj/1bc11cc54cb29d7eb86962470fffec48/Unwind_SunsetSoundBath-Landscape.png',
+    desc:"Let sound artist Bianca Lee ease you into a peaceful night's rest." },
+  { title:'30 Min Reading Soundscapes', tier:'paid', theme:'Soundscapes', phase:'Unwind',
+    tags:['cozy','still','field-recording','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recBe4yE5xYzflESI/3deed856b51efd8245571be5115a326d/R3_Soundscapes_Reading-30M-Landscape.png',
+    desc:'A set of gentle, atmospheric tracks crafted to help you slow down.' },
+  { title:'Sound Bath Sampler', tier:'free', theme:'Music', phase:'Unwind',
+    tags:['serene','warm-tones','instrumental','wind-down','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/1hLv3bXiw1kXSHttxI4bTG/a235ad7e9376405ba010c0380f00e568/BestofMusic_Landscape_1600x1200.png',
+    desc:'Explore a variety of our favorite sound bath tracks to unwind to each night.' },
+  // Sunrise Alarm — phase: Sunrise Alarm
+  { title:'North American Forest', tier:'paid', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['serene','expansive','forest','nature','gentle-rise','gentle-wake','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_rec64mmAhNLr2lVyQ/a38d2e840bbfce5d0e5c98b66db6de00/R3_Alarms_RegionalBirds-NAForest-Landscape.png',
+    desc:'Wake up in the cheerful, familiar woods of Appalachia.' },
+  { title:'Peaceful Dove', tier:'free', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['serene','birds','field-recording','gentle-rise','gentle-wake','background'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recheEKtsZ6mw9Alb/a9b204defefe2eaa0ebf25a4c0d6b6a5/R3_Alarms_PeacefulDove-Landscape.png',
+    desc:'Wake up to the gentle sound of peaceful doves.' },
+  { title:'Harmony at Dawn', tier:'paid', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['serene','uplifting','birds','instrumental','rhythmic','gentle-wake','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_reciy3OznfUJlbvQz/d86cbafc49fc8a4f3e63c059ed72c7cc/R3_Alarms_HarmonyatDawn-Landscape.png',
+    desc:'Wake up with beautiful instrumental music paired with the sounds of nature.' },
+  { title:'Pump It Up', tier:'paid', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['uplifting','rhythmic','energized-wake','bright','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recSPbXBDSpXmUBFk/da2a909dd45ae56e4bafc7d25e0b75a3/Alarm-JockJams-02-Landscape.png',
+    desc:'Wake up to the beat that gets your blood pumping and your body moving.' },
+  { title:'Your Obnoxiously Famous Personal Trainer', tier:'paid', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['humorous','voice-led','energized-wake','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recL0fFY6NR9r3FRm/bea5d6bf6ff0b775a548e08d1886087b/R3_Alarm_ObnoxiouslyFamousPersonalTrainer-Landscape.png',
+    desc:"Your favorite overachieving trainer is back." },
+  { title:'Sleepy Hollow Alarm', tier:'paid', theme:'Sunrise Alarm', phase:'Sunrise Alarm',
+    tags:['playful','rhythmic','energized-wake','foreground'],
+    img:'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recta6abBEAJFF8Wf/1191de0725c81233ace15f826a06a4cc/R3_Alarms_SleepyHollow-Landscape.png',
+    desc:'A playful, spooky wake-up call straight from Sleepy Hollow.' },
+];
+
+const PHASE_EXCLUDE_TAGS = {
+  'Sleep':         new Set(['energized-wake','gentle-wake','gentle-rise']),
+  'Unwind':        new Set(['energized-wake','gentle-wake','gentle-rise']),
+  'Sunrise Alarm': new Set(['fall-asleep','stay-asleep']),
+};
+
+function computeRecs(item, verdict, chipTag) {
+  const ptags = new Set(item.tags);
+  const exclude = PHASE_EXCLUDE_TAGS[item.phase] || new Set();
+  let pool = REC_CATALOG.filter(c =>
+    c.phase === item.phase &&
+    c.title !== item.title &&
+    !c.tags.some(t => exclude.has(t))
+  );
+  pool = pool.map(c => ({ ...c, overlap: c.tags.filter(t => ptags.has(t)).length }));
+  if (verdict === 'like') {
+    pool.sort((a, b) => {
+      const sameA = a.theme === item.theme ? 1 : 0;
+      const sameB = b.theme === item.theme ? 1 : 0;
+      if (sameB - sameA !== 0) return sameB - sameA;
+      return b.overlap - a.overlap;
+    });
+  } else {
+    const themesInPhase = new Set(REC_CATALOG.filter(c => c.phase === item.phase).map(c => c.theme));
+    if (themesInPhase.size > 1) {
+      pool = pool.filter(c => c.theme !== item.theme);
+    }
+    if (chipTag) pool = pool.filter(c => !c.tags.includes(chipTag));
+    pool.sort((a, b) => a.overlap - b.overlap);
+  }
+  return pool.slice(0, 3);
+}
+
+const CHECKUP_ITEMS = [
+  {
+    id: 'cu-td',
+    phase: 'Sleep', phaseLabel: 'Bedtime', phaseTime: '10:34 PM', stepName: 'Turndown Service',
+    theme: 'Sleep Sounds',
+    title: 'Rain on the Porch',
+    desc: 'Rain softly tapping on a porch roof evokes a feeling of sheltered relaxation.',
+    image: 'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recjZyWitgUTY0xUu/44f8885f4994e704e7e9e74889ab8add/R3_SleepSounds_Rain_Porch-Landscape.png',
+    tags: ['cozy','still','rain','wind-down','background'],
+    tier: 'free',
+  },
+  {
+    id: 'cu-cast',
+    phase: 'Unwind', phaseLabel: 'Bedtime Playlist', phaseTime: '11:05 PM', stepName: 'Sleep Cast',
+    theme: 'Stories',
+    title: "Dorian Dreamwell's Realm of Dreams",
+    desc: 'Dorian Dreamwell invites you into a whimsical realm where the impossible feels inevitable.',
+    image: 'https://images.ctfassets.net/hlsdh3zwyrtx/22jKI68LUUDbk0p1OQWsTj/43751f441eb90c20505d49c407ce0717/DorianDreamwell_Landscape.png',
+    tags: ['dreamy','voice-led','fall-asleep','foreground'],
+    tier: 'paid',
+  },
+  {
+    id: 'cu-alarm',
+    phase: 'Sunrise Alarm', phaseLabel: 'Rise Time', phaseTime: '6:46 AM', stepName: 'Alarm',
+    theme: 'Sunrise Alarm',
+    title: 'Morning Birds',
+    desc: 'Wake up to the gentle chorus of birds welcoming the new day.',
+    image: 'https://images.ctfassets.net/hlsdh3zwyrtx/IMAGE_recPLwVdSeJXgcZyo/cb4b9184c27e7c2b9f2950f1830ff1ba/R3_Alarms_MorningBirds-Landscape.png',
+    tags: ['serene','uplifting','expansive','birds','gentle-rise','gentle-wake','background'],
+    tier: 'free',
+  },
+];
+
+const SOUNDS_WIND = [
+  { e:'🎙️', n:'Sleep Cast' }, { e:'🎵', n:'Playlist'   },
+  { e:'🧘', n:'Breathe'    }, { e:'📖', n:'Story'       },
+  { e:'🎶', n:'Nature Mix' }, { e:'🌙', n:'Ambient'     },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+
+let S = { q1: null, branch: null };
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+
+function navigate(html, direction) {
+  const c = document.getElementById('content');
+  const old = c.querySelector('.screen');
+  const neo = document.createElement('div');
+  neo.className = 'screen ' + (direction === 'back' ? 'from-left' : 'from-right');
+  neo.innerHTML = html;
+  c.appendChild(neo);
+  c.scrollTop = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (old) old.classList.add(direction === 'back' ? 'exit-right' : 'exit-left');
+    neo.classList.remove('from-right', 'from-left');
+    neo.classList.add('slide-in');
+  }));
+  if (old) setTimeout(() => old.remove(), 350);
+}
+
+function go(html)     { navigate(html, 'forward'); }
+function goBack(html) { navigate(html, 'back'); }
+
+function resetFlow() {
+  S = { q1: null, branch: null };
+  goBack(sleepTabHTML());
+}
+
+// ── SLEEP TAB ─────────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  const c = document.getElementById('content');
+  c.scrollTop = 0;
+  const neo = document.createElement('div');
+  neo.className = 'screen slide-in';
+  neo.innerHTML = tab === 'plan' ? planTabHTML() : sleepTabHTML();
+  c.innerHTML = '';
+  c.appendChild(neo);
+}
+
+function planTabHTML() {
+  function planRow(item) {
+    return `<div class="plan-row">
+      <img class="plan-row-thumb" src="${item.image}" alt="${item.title}">
+      <div class="plan-row-info">
+        <div class="plan-row-title">${item.title}</div>
+        <div class="plan-row-sub">${item.stepName} · ${item.phaseTime}</div>
+      </div>
+      <span class="plan-row-chev">›</span>
+    </div>`;
+  }
+  const bedtimeRows   = CHECKUP_ITEMS.filter(i => i.phase === 'Sleep').map(planRow).join('');
+  const playlistRows  = CHECKUP_ITEMS.filter(i => i.phase === 'Unwind').map(planRow).join('');
+  const riseTimeRows  = CHECKUP_ITEMS.filter(i => i.phase === 'Sunrise Alarm').map(planRow).join('');
+
+  const favsHtml = _favs.length === 0
+    ? `<p class="plan-fav-empty">Heart items in your Routine check-up to save them here.</p>`
+    : `<div class="plan-fav-scroll">${_favs.map(f => `
+        <div class="plan-fav-card">
+          <img class="plan-fav-img" src="${f.img}" alt="${f.title}">
+          <span class="plan-fav-heart">♥</span>
+          <div class="plan-fav-body">
+            <div class="plan-fav-name">${f.title}</div>
+            <button class="plan-fav-add" onclick="this.innerHTML='✓ Added';this.classList.add('added')">+ Add</button>
+          </div>
+        </div>
+      `).join('')}</div>`;
+
+  const bedtimeTitle = _planAdds.Sleep ? _planAdds.Sleep.title : 'Rain on the Porch';
+  const alarmTitle   = _planAdds['Sunrise Alarm'] ? _planAdds['Sunrise Alarm'].title : 'Morning Birds';
+
+  const addedPlaylistRows = _planAdds.Unwind.map(p => `<div class="plan-row">
+      <img class="plan-row-thumb" src="${p.img}" alt="${p.title}">
+      <div class="plan-row-info">
+        <div class="plan-row-title">${p.title}</div>
+        <div class="plan-row-sub">Added from recs</div>
+      </div>
+      <span class="plan-row-chev">›</span>
+    </div>`).join('');
+
+  return `
+    <div class="plan-h1">Tonight's plan</div>
+    <div class="plan-tiles">
+      <div>
+        <div class="plan-section-lbl" style="margin-bottom:8px;">🌙 Bedtime</div>
+        <div class="plan-tile">
+          <div class="plan-tile-time">10:34 PM</div>
+          <div class="plan-tile-sub">${bedtimeTitle} at 10:15 PM</div>
+        </div>
+      </div>
+      <div>
+        <div class="plan-section-lbl" style="margin-bottom:8px;">🌅 Rise Time</div>
+        <div class="plan-tile">
+          <div class="plan-tile-time">6:46 AM</div>
+          <div class="plan-tile-sub">☀ ${alarmTitle}</div>
+        </div>
+      </div>
+    </div>
+    <div class="plan-section-hd" style="margin-top:16px;">
+      <div class="plan-section-lbl">🎵 Sleep Playlist</div>
+      <button class="plan-start-btn">▶ Start</button>
+    </div>
+    ${playlistRows}
+    ${addedPlaylistRows}
+    <div class="plan-add-row">+ Add to playlist</div>
+    <div class="plan-fav-h">Favorites</div>
+    ${favsHtml}
+  `;
+}
+
+function sleepTabHTML() {
+  return `
+    <div class="sleep-header">
+      <div class="screen-title">Sleep</div>
+      <div class="screen-date">Monday, May 12</div>
+    </div>
+    <div class="sleep-card">
+      <div class="sc-top">
+        <span class="sc-label">Last Night</span>
+        <span class="sc-badge">Night 1</span>
+      </div>
+      <div class="sc-big">7h 12m</div>
+      <div class="sc-sub">11:34 PM → 6:46 AM</div>
+      <div class="sc-row">
+        <div class="sc-stat"><div class="sc-stat-val">11:34 PM</div><div class="sc-stat-lbl">Bedtime</div></div>
+        <div class="sc-stat"><div class="sc-stat-val">6:46 AM</div><div class="sc-stat-lbl">Wake time</div></div>
+        <div class="sc-stat"><div class="sc-stat-val">2×</div><div class="sc-stat-lbl">Wake-ups</div></div>
+      </div>
+    </div>
+    <div class="fn-card">
+      <div class="fn-chip">✦ First night with Hatch</div>
+      <div class="fn-title">How did last night go?</div>
+      <div class="fn-body">Let us know and we'll walk through what ran — and see what's worth exploring next.</div>
+      <div class="fn-opts">
+        <button class="fn-opt" onclick="pickQ1('great')">🌟 Really well</button>
+        <button class="fn-opt" onclick="pickQ1('okay')">😊 Pretty good</button>
+        <button class="fn-opt" onclick="pickQ1('mixed')">😐 Mixed</button>
+        <button class="fn-opt" onclick="pickQ1('rough')">😔 Rough</button>
+      </div>
+    </div>
+    <div class="fn-card" style="margin-top:12px;" onclick="go(routineCheckupHTML())">
+      <div class="fn-chip">✦ Routine check-up</div>
+      <div class="fn-title">Let's tune what's playing</div>
+      <div class="fn-body">Review last night's playlist and swap anything that isn't clicking. Takes about 2 minutes.</div>
+      <div style="font-size:13px; font-weight:600; color:var(--teal); margin-top:12px;">Start review →</div>
+    </div>
+  `;
+}
+
+function pickQ1(val) {
+  S.q1 = val;
+  reviewState = {};
+  go(routineReviewHTML());
+}
+
+// ── ROUTINE REVIEW ────────────────────────────────────────────────────────────
+
+let reviewState = {};
+
+function allPhaseItems() {
+  const map = {};
+  ROUTINE_PHASES.forEach(phase => phase.items.forEach(item => { map[item.id] = item; }));
+  return map;
+}
+
+function routineReviewHTML() {
+  const subtitles = {
+    great: 'Glad to hear it. Let\'s see what ran — and whether anything\'s worth tweaking.',
+    okay:  'Good start. Let\'s walk through what played and see what to explore.',
+    mixed: 'That\'s useful to know. Let\'s go through each piece and see what landed.',
+    rough: 'Sorry to hear that. Let\'s look at what ran and find something worth trying tonight.'
+  };
+
+  const phasesHtml = ROUTINE_PHASES.map(phase => {
+    const itemsHtml = phase.items.map(item => `
+      <div class="phase-item" id="pi-${item.id}">
+        <div class="pi-row">
+          <div class="pi-name">${item.name}</div>
+          <div class="pi-attrs">
+            ${item.attrs.map(a => `<span class="pi-attr"><span class="pi-attr-ico">${a.icon}</span>${a.label}</span>`).join('')}
+          </div>
+        </div>
+        <div class="rc-actions" id="pica-${item.id}">
+          <button class="rc-btn worked"  onclick="reviewMark('${item.id}','worked')">✓ Worked</button>
+          <button class="rc-btn explore" onclick="reviewMark('${item.id}','explore')">↗ Didn't work</button>
+        </div>
+        <div class="rc-followup" id="pif-${item.id}" style="display:none">
+          <div class="rc-fq">${item.q}</div>
+          <div class="rc-opts">
+            ${item.opts.map((o,i) => `<button class="rc-opt" onclick="reviewIssue('${item.id}',${i})">${o}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="phase-block">
+        <div class="phase-header">
+          <div class="phase-label">${phase.label}</div>
+          <div class="phase-time">${phase.time}</div>
+        </div>
+        ${itemsHtml}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <button class="back" onclick="goBack(sleepTabHTML())">← Back</button>
+    <div class="q-header">
+      <div class="q-title">Here's what ran last night.</div>
+      <div class="q-subtitle">${subtitles[S.q1] || subtitles.okay}</div>
+    </div>
+    ${phasesHtml}
+    <div id="review-cta" style="display:none; padding-top:4px;">
+      <button class="save-btn" style="background:#3FD5C0; margin-top:0;" onclick="go(routineRecsHTML())">See what to try →</button>
+    </div>
+  `;
+}
+
+function reviewMark(itemId, verdict) {
+  const item    = document.getElementById(`pi-${itemId}`);
+  const actions = document.getElementById(`pica-${itemId}`);
+  const followup= document.getElementById(`pif-${itemId}`);
+
+  actions.querySelectorAll('.rc-btn').forEach(b => { b.classList.remove('active'); b.disabled = true; });
+
+  if (verdict === 'worked') {
+    reviewState[itemId] = 'worked';
+    actions.querySelector('.worked').classList.add('active');
+    item.classList.add('reviewed-good');
+    followup.style.display = 'none';
+  } else {
+    actions.querySelector('.explore').classList.add('active');
+    item.classList.add('reviewed-explore');
+    followup.style.display = 'block';
+    setTimeout(() => followup.scrollIntoView({ behavior:'smooth', block:'nearest' }), 60);
+  }
+  checkReviewCta();
+}
+
+function reviewIssue(itemId, idx) {
+  reviewState[itemId] = { issue: idx };
+  const followup = document.getElementById(`pif-${itemId}`);
+  followup.querySelectorAll('.rc-opt').forEach((b,i) => {
+    b.classList.toggle('selected', i === idx);
+    b.disabled = true;
+  });
+  checkReviewCta();
+}
+
+function checkReviewCta() {
+  if (Object.keys(reviewState).length >= 1) {
+    const cta = document.getElementById('review-cta');
+    if (cta && cta.style.display === 'none') {
+      cta.style.display = 'block';
+      setTimeout(() => cta.scrollIntoView({ behavior:'smooth', block:'nearest' }), 80);
+    }
+  }
+}
+
+// ── ROUTINE RECS ──────────────────────────────────────────────────────────────
+
+function routineRecsHTML() {
+  const items = allPhaseItems();
+  const explorRecs = [], workedRecs = [];
+  Object.entries(reviewState).forEach(([id, state]) => {
+    const item = items[id];
+    if (!item) return;
+    if (state === 'worked') {
+      (item.recs_worked || []).forEach(r => workedRecs.push({ ...r, component: id, worked: true }));
+    } else if (state.issue !== undefined) {
+      (item.recs[state.issue] || []).forEach(r => explorRecs.push({ ...r, component: id }));
+    }
+  });
+
+  const hasExplore = explorRecs.length > 0;
+  const hasWorked  = workedRecs.length > 0;
+  const heading    = hasExplore ? 'A few things worth exploring' : 'Last night clicked. 🎉';
+  const subhead    = hasExplore
+    ? 'No pressure — try one tonight and see what shifts.'
+    : 'Your routine is in good shape. A little more to discover when you\'re ready.';
+
+  function recCard(rec) {
+    const br         = BRANCHES[rec.flow];
+    const flowLabel  = { alarm:'Alarm', winddown:'Wind-down', sounds:'Sleep sounds', bedtime:'Bedtime' }[rec.flow] || '';
+    const eyebrow    = rec.worked
+      ? `✦ More like this`
+      : `${br ? br.icon : ''} ${flowLabel}`;
+    const borderStyle = rec.worked ? 'border-color:rgba(63,213,192,0.3)' : '';
+    return `
+      <div class="short-rec" style="${borderStyle}" onclick="go(deepDiveHTML('${rec.flow}'))">
+        <div class="sr-eyebrow">${eyebrow}</div>
+        <div class="sr-title">${rec.title}</div>
+        <div class="sr-body">${rec.body}</div>
+        <div class="sr-action">${rec.cta}</div>
+      </div>`;
+  }
+
+  const toShow  = [...explorRecs, ...workedRecs].slice(0, 4);
+  const fallback = toShow.length === 0 ? [
+    { title:'Explore a new alarm vibe', body:'You might find something you enjoy even more than what\'s running now.', cta:'Browse alarm sounds →', flow:'alarm', worked:false },
+    { title:'Add a Sleep Cast to your wind-down', body:'A short story or guided session before your playlist can make the transition feel more intentional.', cta:'Browse Sleep Casts →', flow:'winddown', worked:false },
+  ] : toShow;
+
+  const recsHtml = fallback.map(recCard).join('');
+
+  return `
+    <button class="back" onclick="goBack(routineReviewHTML())">← Back</button>
+    <div class="recs-header">
+      <div class="recs-title" style="color:#3FD5C0">${heading}</div>
+      <div class="recs-sub">${subhead}</div>
+    </div>
+    ${recsHtml}
+    <div class="done-card" style="margin-top:8px">
+      <div class="done-title">Check back tomorrow morning</div>
+      <div class="done-sub">We'll keep refining as we learn what works for you.</div>
+    </div>
+  `;
+}
+
+// ── DEEP DIVE — lightweight experiential screens ─────────────────────────────
+
+function deepDiveHTML(flowKey) {
+  if (flowKey === 'alarm')    return deepDiveAlarmHTML();
+  if (flowKey === 'winddown') return deepDiveWinddownHTML();
+  if (flowKey === 'bedtime') {
+    setTimeout(() => initBedtimePicker(), 130);
+    return deepDiveBedtimeHTML();
+  }
+  return deepDiveSoundsHTML();
+}
+
+// ── Alarm: vibe grid → TikTok card feed ──────────────────────────────────────
+
+function deepDiveAlarmHTML() {
+  const recCat = getAlarmRec();
+  const vibesHtml = ALARM_VIBES.map(v => {
+    const isRec = v.catKey === recCat;
+    return `
+      <div class="vibe-card" id="vibe-${v.key}"
+           style="background:${v.bg}; border-color:${v.border};"
+           onclick="pickAlarmVibe('${v.key}')">
+        ${isRec ? `<div style="font-size:9px;font-weight:700;color:#3FD5C0;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">✦ For you</div>` : ''}
+        <div class="vibe-ico">${v.emoji}</div>
+        <div class="vibe-name">${v.name}</div>
+        <div class="vibe-sub">${v.sub}</div>
+      </div>`;
+  }).join('');
+
+  return `
+    <button class="back" onclick="goBack(routineRecsHTML())">← Back</button>
+    <div class="q-header" style="margin-bottom:18px;">
+      <div class="q-title">What kind of morning are you going for?</div>
+    </div>
+    <div class="vibe-grid">${vibesHtml}</div>
+    <div id="alarm-vibe-feed"></div>
+  `;
+}
+
+function pickAlarmVibe(vibeKey) {
+  const vibe = ALARM_VIBES.find(v => v.key === vibeKey);
+  if (!vibe) return;
+
+  // Highlight selected, dim others
+  ALARM_VIBES.forEach(v => {
+    const el = document.getElementById(`vibe-${v.key}`);
+    if (!el) return;
+    if (v.key === vibeKey) {
+      el.style.border = `1.5px solid ${vibe.color}`;
+      el.style.boxShadow = `0 0 0 2px ${vibe.color}30`;
+      el.style.transform = 'scale(1.03)';
+    } else {
+      el.style.opacity = '0.35';
+      el.style.pointerEvents = 'none';
+    }
+  });
+
+  const isRec = vibe.catKey === getAlarmRec();
+  let cards = (ALARM_CATS[vibe.catKey]?.cards || []).slice(0, 3);
+  if (cards.length === 0) {
+    const all = Object.values(ALARM_CATS).flatMap(c => c.cards);
+    cards = [all[Math.floor(Math.random() * all.length)]];
+  }
+
+  alarmFeedIdx = 0;
+  const container = document.getElementById('alarm-vibe-feed');
+  container.innerHTML = `
+    <div style="margin-top:18px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-2);margin-bottom:10px;">
+      ${isRec ? '✦ Picked for you' : 'Choose your sound'}
+    </div>
+    <div class="alarm-feed-wrap">
+      ${alarmCardFeedHTML(cards, isRec)}
+    </div>
+    <button class="light-save" style="background:${vibe.color};" onclick="saveLightRoutine(this)">
+      Add to tonight's routine →
+    </button>
+  `;
+  renderSideDots(cards.length, 0);
+
+  const feedEl = document.getElementById('alarm-feed');
+  if (feedEl) {
+    feedEl.addEventListener('scroll', () => {
+      alarmFeedIdx = Math.round(feedEl.scrollTop / 300);
+      renderSideDots(cards.length, alarmFeedIdx);
+    }, { passive: true });
+  }
+
+  setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+}
+
+// ── Wind-down: content carousel only ─────────────────────────────────────────
+
+function deepDiveWinddownHTML() {
+  const color = BRANCHES.winddown.color;
+  return `
+    <button class="back" onclick="goBack(routineRecsHTML())">← Back</button>
+    <div class="q-header" style="margin-bottom:16px;">
+      <div class="q-title">What do you want to wind down with?</div>
+      <div class="q-subtitle">Tap to preview. No commitment — change it any time.</div>
+    </div>
+    <div class="sound-scroll">${soundCarouselHTML(SOUNDS_WIND, 'wind', color)}</div>
+    <button class="light-save" style="background:${color};margin-top:18px;" onclick="saveLightRoutine(this)">
+      Add to tonight's routine →
+    </button>
+  `;
+}
+
+// ── Sleep sounds: sound carousel only ────────────────────────────────────────
+
+function deepDiveSoundsHTML() {
+  const color = BRANCHES.sounds.color;
+  return `
+    <button class="back" onclick="goBack(routineRecsHTML())">← Back</button>
+    <div class="q-header" style="margin-bottom:16px;">
+      <div class="q-title">Find your sleep sound</div>
+      <div class="q-subtitle">Tap to preview. The one that makes you exhale is usually the right one.</div>
+    </div>
+    <div class="sound-scroll">${soundCarouselHTML(SOUNDS_SLEEP, 'sleep', color)}</div>
+    <button class="light-save" style="background:${color};margin-top:18px;" onclick="saveLightRoutine(this)">
+      Add to tonight's routine →
+    </button>
+  `;
+}
+
+// ── Bedtime: reminder picker + toggles only ───────────────────────────────────
+
+function deepDiveBedtimeHTML() {
+  const color  = BRANCHES.bedtime.color;
+  const mins   = [5,10,15,20,25,30,35,40,45,50,55,60];
+  const items  = mins.map((m, i) =>
+    `<div class="picker-item" onclick="pickerTap(${i})">${m} min</div>`
+  ).join('');
+  return `
+    <button class="back" onclick="goBack(routineRecsHTML())">← Back</button>
+    <div class="q-header" style="margin-bottom:16px;">
+      <div class="q-title">Set your bedtime reminder</div>
+    </div>
+    <div class="cust-label">Remind me</div>
+    <div class="picker-wrap">
+      <div class="picker-highlight"></div>
+      <div class="picker-mask"></div>
+      <div class="picker-scroll" id="bedtime-picker">${items}</div>
+    </div>
+    <div class="picker-sublabel" id="picker-label">30 minutes before your target bedtime</div>
+    <div class="cust-label" style="margin-top:16px;">Bedtime support</div>
+    <div class="toggle-card">
+      <div class="toggle-left">
+        <div class="toggle-ico">🕯️</div>
+        <div>
+          <div class="toggle-name">Turndown Service</div>
+          <div class="toggle-desc">Sound and light ease you in — your room starts glowing as a cue that it's time to wind down.</div>
+        </div>
+      </div>
+      <div class="toggle-sw on" onclick="toggleSw(this)"><div class="toggle-k"></div></div>
+    </div>
+    <div class="toggle-card">
+      <div class="toggle-left">
+        <div class="toggle-ico">📱</div>
+        <div>
+          <div class="toggle-name">Bedtime Countdown</div>
+          <div class="toggle-desc">A live activity on your lock screen keeps bedtime top of mind.</div>
+        </div>
+      </div>
+      <div class="toggle-sw" onclick="toggleSw(this)"><div class="toggle-k"></div></div>
+    </div>
+    <button class="light-save" style="background:${color};" onclick="saveLightRoutine(this)">
+      Add to tonight's routine →
+    </button>
+  `;
+}
+
+// ── Light save ────────────────────────────────────────────────────────────────
+
+function saveLightRoutine(btn) {
+  btn.textContent = '✓ Added to your routine';
+  btn.disabled = true;
+  const done = document.createElement('div');
+  done.className = 'done-card';
+  done.style.marginTop = '12px';
+  done.innerHTML = `
+    <div class="done-title">🎉 Your routine is taking shape</div>
+    <div class="done-sub">Check back tomorrow morning — we'll keep refining as we learn what works for you.</div>
+  `;
+  btn.insertAdjacentElement('afterend', done);
+  setTimeout(() => done.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+}
+
+// ── ROUTINE CHECK-UP FLOW ─────────────────────────────────────────────────────
+
+// ── SWIPE DECK STATE ─────────────────────────────────────────────────────────
+
+let checkupState = {}; // { [itemId]: { verdict:'like'|'nope', chip:string|null } }
+let _deck = [];        // [{item}]
+let _deckIdx = 0;
+let _drag = null;
+const SWIPE_THRESH = 72;
+
+function routineCheckupHTML() {
+  checkupState = {};
+  _deckIdx = 0;
+  _deck = CHECKUP_ITEMS.map(item => ({ type: 'content', item }));
+
+  setTimeout(() => {
+    _renderStack();
+    _initDrag();
+    _updateDots();
+  }, 80);
+
+  return `
+    <button class="back" onclick="goBack(sleepTabHTML())">← Back</button>
+    <div class="swipe-header">
+      <div class="q-eyebrow">Routine check-up</div>
+      <div class="swipe-headline" id="swipe-headline">Last night's lineup</div>
+      <div class="swipe-dots" id="swipe-dots"></div>
+    </div>
+    <div class="swipe-stage" id="swipe-stage"></div>
+    <div class="swipe-btns" id="swipe-btns">
+      <button class="swipe-btn swipe-btn-nope" onclick="swipeCard('nope')">✕</button>
+      <button class="swipe-btn swipe-btn-like" onclick="swipeCard('like')">♡</button>
+    </div>
+  `;
+}
+
+function _contentCardHTML(item) {
+  return `
+    <div class="swipe-card-front">
+      <img class="swipe-img" src="${item.image}" alt="${item.title}" draggable="false">
+      <div class="swipe-ov swipe-ov-like" id="ov-like-${item.id}">♡ Loved it</div>
+      <div class="swipe-ov swipe-ov-nope" id="ov-nope-${item.id}">✕ Nope</div>
+      <div class="swipe-info">
+        <div class="swipe-phase-lbl">${item.phaseLabel} · ${item.phaseTime}</div>
+        <div class="swipe-step-name">${item.stepName}</div>
+        <div class="swipe-title">${item.title}</div>
+        <div class="swipe-desc">${item.desc}</div>
+      </div>
+    </div>
+    <div class="swipe-card-back">
+      ${_followupCardHTML(item)}
+    </div>
+  `;
+}
+
+function _followupCardHTML(item) {
+  const chipObjs = getChipsForItem(item.theme, item.tags);
+  const themeQuestions = {
+    'Sleep Sounds':  "What about the sound didn't work?",
+    'Stories':       "What about the story didn't land?",
+    'Sunrise Alarm': "Was the wake-up right for you?",
+    'Meditations':   "What didn't click about it?",
+    'Music':         "What didn't land about the music?",
+    'Soundscapes':   "What didn't work about the soundscape?",
+    'Sound Bath':    "What felt off about it?",
+    'Podcasts':      "What didn't work about it?",
+    'ASMR':          "What didn't work about it?",
+  };
+  const question = themeQuestions[item.theme] || "What didn't land?";
+  const chips = chipObjs.map(c =>
+    `<button class="swipe-fu-chip" onclick="_pickChip('${item.id}','${c.label.replace(/'/g,"\\'")}','${c.tag}')">${c.label}</button>`
+  ).join('');
+  return `
+    <div class="swipe-followup">
+      <div class="swipe-fu-emoji">🤔</div>
+      <div class="swipe-fu-title">${question}</div>
+      <div class="swipe-fu-sub">${item.title}</div>
+      <div class="swipe-fu-chips">${chips}</div>
+      <button class="swipe-skip" onclick="_pickChip('${item.id}',null,null)">Skip →</button>
+    </div>
+  `;
+}
+
+function _renderStack() {
+  const stage = document.getElementById('swipe-stage');
+  if (!stage) return;
+  // Clear any old cards first, keep done-wrap if present
+  stage.querySelectorAll('.swipe-card').forEach(c => c.remove());
+  const visible = _deck.slice(_deckIdx, _deckIdx + 3);
+  visible.forEach((entry, i) => {
+    const el = document.createElement('div');
+    el.className = 'swipe-card ' + (i === 0 ? 'is-top' : i === 1 ? 'is-next' : 'is-third');
+    el.innerHTML = _contentCardHTML(entry.item);
+    stage.appendChild(el);
+  });
+  const btns = document.getElementById('swipe-btns');
+  if (btns) btns.style.display = _deckIdx < _deck.length ? 'flex' : 'none';
+}
+
+function _updateDots() {
+  const el = document.getElementById('swipe-dots');
+  if (!el) return;
+  el.innerHTML = _deck.map((entry, n) => {
+    const item = entry.item;
+    const st = checkupState[item.id];
+    let cls = '';
+    if (st) cls = st.verdict === 'like' ? 'done-like' : 'done-nope';
+    else if (n === _deckIdx) cls = 'active';
+    return `<div class="swipe-dot ${cls}"></div>`;
+  }).join('');
+}
+
+function _initDrag() {
+  const stage = document.getElementById('swipe-stage');
+  if (!stage) return;
+  const top = stage.querySelector('.is-top');
+  if (!top) return;
+
+  function start(e) {
+    if (top.classList.contains('flipped')) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    _drag = { startX: x, dx: 0, card: top };
+    top.classList.remove('snapping');
+    top.style.transition = 'none';
+  }
+  function move(e) {
+    if (!_drag) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    _drag.dx = x - _drag.startX;
+    if (Math.abs(_drag.dx) < 4) return;
+    if (e.cancelable) e.preventDefault();
+    const rot = _drag.dx * 0.055;
+    top.style.transform = `translateX(${_drag.dx}px) rotate(${rot}deg)`;
+    const likeOv = top.querySelector(`[id^="ov-like-"]`);
+    const nopeOv = top.querySelector(`[id^="ov-nope-"]`);
+    if (likeOv) likeOv.style.opacity = Math.min(1, Math.max(0, _drag.dx / SWIPE_THRESH));
+    if (nopeOv) nopeOv.style.opacity = Math.min(1, Math.max(0, -_drag.dx / SWIPE_THRESH));
+  }
+  function end() {
+    if (!_drag) return;
+    const dx = _drag.dx;
+    _drag = null;
+    if (Math.abs(dx) >= SWIPE_THRESH) {
+      _commitSwipe(dx > 0 ? 'like' : 'nope');
+    } else {
+      top.classList.add('snapping');
+      top.style.transform = '';
+      const likeOv = top.querySelector(`[id^="ov-like-"]`);
+      const nopeOv = top.querySelector(`[id^="ov-nope-"]`);
+      if (likeOv) likeOv.style.opacity = 0;
+      if (nopeOv) nopeOv.style.opacity = 0;
+    }
+  }
+
+  top.addEventListener('touchstart', start, { passive: true });
+  top.addEventListener('touchmove', move, { passive: false });
+  top.addEventListener('touchend', end);
+  top.addEventListener('mousedown', start);
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', end, { once: true });
+}
+
+function swipeCard(verdict) {
+  const stage = document.getElementById('swipe-stage');
+  if (!stage) return;
+  const top = stage.querySelector('.is-top');
+  if (top && top.classList.contains('flipped')) return;
+  _commitSwipe(verdict);
+}
+
+function _commitSwipe(verdict) {
+  const stage = document.getElementById('swipe-stage');
+  if (!stage) return;
+  const top = stage.querySelector('.is-top');
+  if (!top) return;
+
+  const entry = _deck[_deckIdx];
+  checkupState[entry.item.id] = { verdict, chip: null };
+
+  if (verdict === 'nope') {
+    top.classList.add('flipped');
+    const btns = document.getElementById('swipe-btns');
+    if (btns) btns.style.display = 'none';
+    return;
+  }
+
+  // Animate backing cards up during the fly-off
+  const next  = stage.querySelector('.is-next');
+  const third = stage.querySelector('.is-third');
+  if (next)  { next.style.transition = 'transform 0.32s ease'; next.style.transform = ''; }
+  if (third) { third.style.transition = 'transform 0.32s ease'; third.style.transform = 'scale(0.95) translateY(14px)'; }
+
+  top.classList.add('fly-right');
+
+  setTimeout(() => {
+    _deckIdx++;
+    if (_deckIdx >= _deck.length) { _showDone(); return; }
+    _renderStack();
+    _updateDots();
+    _initDrag();
+  }, 370);
+}
+
+function _pickChip(itemId, chip, chipTag) {
+  if (checkupState[itemId]) {
+    if (chip) checkupState[itemId].chip = chip;
+    if (chipTag) checkupState[itemId].chipTag = chipTag;
+  }
+  const stage = document.getElementById('swipe-stage');
+  if (!stage) return;
+  const top = stage.querySelector('.is-top');
+  if (!top) return;
+  if (chip) {
+    const btn = [...top.querySelectorAll('.swipe-fu-chip')].find(b => b.textContent === chip);
+    if (btn) btn.classList.add('picked');
+  }
+
+  const next  = stage.querySelector('.is-next');
+  const third = stage.querySelector('.is-third');
+  if (next)  { next.style.transition = 'transform 0.32s ease'; next.style.transform = ''; }
+  if (third) { third.style.transition = 'transform 0.32s ease'; third.style.transform = 'scale(0.95) translateY(14px)'; }
+
+  setTimeout(() => {
+    top.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+    top.style.transform = 'rotateY(180deg) translateX(-140%) rotate(-12deg)';
+    top.style.opacity = '0';
+  }, chip ? 350 : 0);
+
+  setTimeout(() => {
+    _deckIdx++;
+    if (_deckIdx >= _deck.length) { _showDone(); return; }
+    _renderStack();
+    _updateDots();
+    _initDrag();
+    const btns = document.getElementById('swipe-btns');
+    if (btns) btns.style.display = 'flex';
+  }, chip ? 750 : 400);
+}
+
+function _showDone() {
+  const stage = document.getElementById('swipe-stage');
+  const btns  = document.getElementById('swipe-btns');
+  if (btns) btns.style.display = 'none';
+  _updateDots();
+
+  const liked = Object.values(checkupState).filter(s => s.verdict === 'like').length;
+  const total = CHECKUP_ITEMS.length;
+  const heading = liked === total
+    ? "Your routine is clicking. 🎉"
+    : liked === 0
+    ? "Fresh start — let's find what works."
+    : "Got it, let's find your next listen.";
+  const sub = liked === total
+    ? "Looks like last night was a good one. Explore more options below if you're curious."
+    : "Based on your picks, we've pulled together some options worth trying tonight. Add or favorite to save for later.";
+
+  if (stage) {
+    stage.querySelectorAll('.swipe-card').forEach(c => c.remove());
+    const wrap = document.createElement('div');
+    wrap.className = 'swipe-done-wrap';
+    wrap.innerHTML = `
+      <div class="swipe-done-star">✦</div>
+      <div class="swipe-done-title">${heading}</div>
+      <div class="swipe-done-sub">${sub}</div>
+      <button class="save-btn" style="background:#3FD5C0;margin-top:0;width:100%;" onclick="go(_recMode === 'swipe' ? checkupRecsSwipeHTML() : checkupRecsHTML())">See what we found →</button>
+    `;
+    stage.appendChild(wrap);
+  }
+}
+
+function checkupRecsHTML() {
+  // Group rated items by phase, preserving order
+  const phaseOrder = [];
+  const phaseGroups = {};
+  CHECKUP_ITEMS.forEach(item => {
+    if (!checkupState[item.id]) return;
+    if (!phaseGroups[item.phase]) { phaseOrder.push(item.phase); phaseGroups[item.phase] = []; }
+    phaseGroups[item.phase].push(item);
+  });
+
+  const phaseCTAs = { 'Sleep': '+ Add to Bedtime', 'Unwind': '+ Add to Bedtime Playlist', 'Sunrise Alarm': '+ Add to Alarm' };
+
+  const sectionsHtml = phaseOrder.map(phase => {
+    const phaseLabel = phaseGroups[phase][0]?.phaseLabel || phase;
+    const ctaLabel   = phaseCTAs[phase] || '+ Add';
+
+    const itemSections = phaseGroups[phase].map(item => {
+      const state = checkupState[item.id];
+      const isLike = state.verdict === 'like';
+      const recs = computeRecs(item, state.verdict, state.chipTag || null);
+      const eyebrow    = isLike ? 'ev-like' : 'ev-nope';
+      const eyebrowTxt = isLike ? '✦ More like this' : 'Something different';
+      const heading    = isLike
+        ? `You liked <em>${item.title}</em> — here's what else might click`
+        : `Instead of <em>${item.title}</em>${state.chip ? ` (${state.chip.toLowerCase()})` : ''}`;
+
+      const recCards = recs.map(r => `
+        <div class="cu-rec-card">
+          <div class="cu-rec-img-wrap">
+            <img class="cu-rec-img" src="${r.img}" alt="${r.title}" loading="lazy">
+            ${r.tier === 'paid' ? '<span class="cu-rec-hatch-plus">✦ Hatch+</span>' : ''}
+          </div>
+          <div class="cu-rec-info">
+            <div class="cu-rec-name">${r.title}</div>
+            <div class="cu-rec-actions">
+              <div class="cu-rec-primary-row">
+                <button class="cu-rec-btn-eq" onclick="previewRec(this)">▶ Preview</button>
+                <button class="cu-rec-btn-eq" onclick="favRec(this, '${r.title}', '${r.img}', '${r.tier}')">♡ Save</button>
+              </div>
+              <button class="cu-rec-add" onclick="addRec(this,'${ctaLabel}','${phase}','${r.title.replace(/'/g,"\\'")}','${r.img}')">${ctaLabel}</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      return `
+        <div class="cu-rec-section" style="margin-bottom:18px;">
+          <div class="cu-rec-eyebrow ${eyebrow}">${eyebrowTxt}</div>
+          <div class="cu-rec-heading">${heading}</div>
+          <div class="cu-rec-scroll">${recCards}</div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="margin-bottom:26px;">
+        <div class="cu-phase-header">${phaseLabel}</div>
+        ${itemSections}
+      </div>
+    `;
+  }).join('');
+
+  const ratedCount = Object.keys(checkupState).length;
+  const likedCount = Object.values(checkupState).filter(s => s.verdict === 'like').length;
+  const heading = likedCount === ratedCount && ratedCount > 0
+    ? "Last night's routine was firing. 🎉"
+    : likedCount === 0
+    ? "Fresh start. Let's find what works."
+    : "Here's what we found.";
+
+  return `
+    <button class="back" onclick="goBack(routineCheckupHTML())">← Back</button>
+    <div class="recs-header" style="margin-bottom:22px;">
+      <div class="recs-title" style="color:#3FD5C0">${heading}</div>
+      <div class="recs-sub">Preview anything that sounds good, then add it for tonight.</div>
+    </div>
+    ${sectionsHtml}
+    <div class="done-card" style="margin-top:4px; margin-bottom:12px;">
+      <div class="done-title">Updates saved to your routine</div>
+      <div class="done-sub">We'll keep learning what works as you use it.</div>
+    </div>
+    <button class="save-btn" style="background:transparent; border:1.5px solid var(--border); color:var(--text-1); margin-top:0;" onclick="switchTab('plan')">Done → See your plan</button>
+  `;
+}
+
+function previewRec(btn) {
+  const isPlaying = btn.classList.contains('playing');
+  document.querySelectorAll('.cu-rec-btn-eq.playing').forEach(b => {
+    b.innerHTML = '▶ Preview'; b.classList.remove('playing');
+  });
+  if (!isPlaying) {
+    btn.innerHTML = '⏸ Playing…'; btn.classList.add('playing');
+  }
+}
+let _favs = []; // { title, img, tier }
+let _planAdds = { Sleep: null, Unwind: [], 'Sunrise Alarm': null };
+
+function favRec(btn, title, img, tier) {
+  const saved = btn.classList.contains('saved');
+  btn.innerHTML = saved ? '♡ Save' : '♥ Saved';
+  btn.classList.toggle('saved', !saved);
+  if (!saved) {
+    if (!_favs.find(f => f.title === title)) _favs.push({ title, img, tier });
+  } else {
+    _favs = _favs.filter(f => f.title !== title);
+  }
+}
+function addRec(btn, label, phase, title, img) {
+  if (btn.classList.contains('added')) return;
+  btn.textContent = '✓ Added';
+  btn.classList.add('added');
+  if (phase === 'Sleep') _planAdds.Sleep = { title, img };
+  else if (phase === 'Unwind') _planAdds.Unwind.push({ title, img });
+  else if (phase === 'Sunrise Alarm') _planAdds['Sunrise Alarm'] = { title, img };
+}
+
+// ── SWIPE RECS (V2) ──────────────────────────────────────────────────────────
+
+let _recMode = 'list'; // 'list' or 'swipe'
+let _recDeck = [];
+let _recIdx = 0;
+let _recDrag = null;
+const REC_SWIPE_THRESH = 70;
+
+function toggleRecMode() {
+  _recMode = _recMode === 'list' ? 'swipe' : 'list';
+  document.querySelectorAll('.debug-sw').forEach(s => s.classList.toggle('on', _recMode === 'swipe'));
+  document.querySelectorAll('.debug-bar span').forEach((s, i) => {
+    s.classList.toggle('active', (i === 0 && _recMode === 'list') || (i === 2 && _recMode === 'swipe'));
+  });
+}
+
+function _buildRecDeck() {
+  const deck = [];
+  const phaseCTAs = { 'Sleep': '+ Add to Bedtime', 'Unwind': '+ Add to Bedtime Playlist', 'Sunrise Alarm': '+ Add to Alarm' };
+  CHECKUP_ITEMS.forEach(item => {
+    const state = checkupState[item.id];
+    if (!state) return;
+    const recs = computeRecs(item, state.verdict, state.chipTag || null);
+    const isLike = state.verdict === 'like';
+    const context = isLike
+      ? `You liked <em>${item.title}</em> — here's what else might click`
+      : `Instead of <em>${item.title}</em>${state.chip ? ` (${state.chip.toLowerCase()})` : ''}`;
+    const eyebrow = isLike ? '✦ More like this' : 'Something different';
+    const ctaLabel = phaseCTAs[item.phase] || '+ Add';
+    recs.forEach(r => {
+      deck.push({ ...r, context, eyebrow, ctaLabel, phaseLabel: item.phaseLabel, isLike });
+    });
+  });
+  return deck;
+}
+
+function checkupRecsSwipeHTML() {
+  _recDeck = _buildRecDeck();
+  _recIdx = 0;
+
+  setTimeout(() => {
+    _renderRecStack();
+    _initRecDrag();
+  }, 80);
+
+  return `
+    <button class="back" onclick="goBack(routineCheckupHTML())">← Back</button>
+    <div class="recs-header" style="margin-bottom:16px;">
+      <div class="recs-title" style="color:#3FD5C0">Here's what we found.</div>
+      <div class="recs-sub">Swipe to browse. Add anything that sounds good.</div>
+    </div>
+    <div id="rec-swipe-context"></div>
+    <div class="rec-swipe-stage" id="rec-swipe-stage"></div>
+    <div class="swipe-btns" id="rec-swipe-btns">
+      <button class="swipe-btn swipe-btn-nope" onclick="_recSwipe('nope')">✕</button>
+      <button class="swipe-btn swipe-btn-like" onclick="_recSwipe('like')">♡</button>
+    </div>
+    <div class="rec-swipe-counter" id="rec-swipe-counter"></div>
+    <button class="save-btn" style="background:transparent; border:1.5px solid var(--border); color:var(--text-1); margin-top:0;" onclick="switchTab('plan')">Done → See your plan</button>
+  `;
+}
+
+function _recCardHTML(r) {
+  return `
+    <div class="rec-swipe-ov rec-swipe-ov-like">♡ Added</div>
+    <div class="rec-swipe-ov rec-swipe-ov-nope">✕ Skip</div>
+    <div class="rec-swipe-img-wrap">
+      <img class="rec-swipe-img" src="${r.img}" alt="${r.title}" draggable="false">
+      ${r.tier === 'paid' ? '<span class="rec-swipe-badge">✦ Hatch+</span>' : ''}
+    </div>
+    <div class="rec-swipe-info">
+      <div class="rec-swipe-name">${r.title}</div>
+      <div class="rec-swipe-desc">${r.desc}</div>
+    </div>
+    <div class="rec-swipe-actions">
+      <button class="rec-swipe-preview" onclick="event.stopPropagation();_recPreview(this)">▶ Preview</button>
+      <button class="rec-swipe-add" onclick="event.stopPropagation();_recAdd(this,'${r.ctaLabel}')">${r.ctaLabel}</button>
+    </div>
+  `;
+}
+
+function _renderRecStack() {
+  const stage = document.getElementById('rec-swipe-stage');
+  if (!stage) return;
+  stage.querySelectorAll('.rec-swipe-card').forEach(c => c.remove());
+
+  if (_recIdx >= _recDeck.length) {
+    const existing = stage.querySelector('.rec-swipe-done');
+    if (!existing) {
+      stage.innerHTML = `
+        <div class="rec-swipe-done">
+          <div class="rec-swipe-done-star">✦</div>
+          <div class="rec-swipe-done-title">That's all for now</div>
+          <div class="rec-swipe-done-sub">Head to the Library if you'd like to explore all 500+ options.</div>
+        </div>
+      `;
+    }
+    const btns = document.getElementById('rec-swipe-btns');
+    if (btns) btns.style.display = 'none';
+    _updateRecContext();
+    _updateRecCounter();
+    return;
+  }
+
+  const visible = _recDeck.slice(_recIdx, _recIdx + 3);
+  visible.forEach((r, i) => {
+    const el = document.createElement('div');
+    el.className = 'rec-swipe-card ' + (i === 0 ? 'is-top' : i === 1 ? 'is-next' : 'is-third');
+    el.innerHTML = _recCardHTML(r);
+    stage.appendChild(el);
+  });
+
+  _updateRecContext();
+  _updateRecCounter();
+}
+
+const PHASE_EMOJI = { 'Bedtime': '🌙', 'Bedtime Playlist': '📖', 'Rise Time': '☀️' };
+
+function _updateRecContext() {
+  const el = document.getElementById('rec-swipe-context');
+  if (!el) return;
+  const r = _recDeck[_recIdx];
+  if (!r) { el.innerHTML = ''; return; }
+  const emoji = PHASE_EMOJI[r.phaseLabel] || '✦';
+  el.innerHTML = `
+    <div class="rec-swipe-phase-headline">
+      <span class="rec-swipe-phase-emoji">${emoji}</span>
+      <span class="rec-swipe-phase-name">${r.phaseLabel}</span>
+    </div>
+    <div class="rec-swipe-context">${r.context}</div>
+  `;
+}
+
+function _updateRecCounter() {
+  const el = document.getElementById('rec-swipe-counter');
+  if (!el) return;
+  if (_recIdx >= _recDeck.length) { el.innerHTML = ''; return; }
+  el.textContent = `${_recIdx + 1} of ${_recDeck.length}`;
+}
+
+function _recSwipe(verdict) {
+  const stage = document.getElementById('rec-swipe-stage');
+  if (!stage || _recIdx >= _recDeck.length) return;
+  const top = stage.querySelector('.is-top');
+  if (!top) return;
+
+  if (verdict === 'like') {
+    const r = _recDeck[_recIdx];
+    if (r && !_favs.find(f => f.title === r.title)) _favs.push({ title: r.title, img: r.img, tier: r.tier });
+  }
+
+  top.classList.add(verdict === 'like' ? 'fly-right' : 'fly-left');
+
+  setTimeout(() => {
+    _recIdx++;
+    _renderRecStack();
+    _initRecDrag();
+  }, 370);
+}
+
+function _initRecDrag() {
+  const stage = document.getElementById('rec-swipe-stage');
+  if (!stage) return;
+  const top = stage.querySelector('.rec-swipe-card.is-top');
+  if (!top) return;
+
+  function start(e) {
+    if (e.target.closest('button')) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    _recDrag = { startX: x, dx: 0, card: top };
+    top.classList.remove('snapping');
+    top.style.transition = 'none';
+  }
+  function move(e) {
+    if (!_recDrag) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    _recDrag.dx = x - _recDrag.startX;
+    if (Math.abs(_recDrag.dx) < 4) return;
+    if (e.cancelable) e.preventDefault();
+    top.style.transform = `translateX(${_recDrag.dx}px) rotate(${_recDrag.dx * 0.055}deg)`;
+    const likeOv = top.querySelector('.rec-swipe-ov-like');
+    const nopeOv = top.querySelector('.rec-swipe-ov-nope');
+    if (likeOv) likeOv.style.opacity = Math.min(1, Math.max(0, _recDrag.dx / REC_SWIPE_THRESH));
+    if (nopeOv) nopeOv.style.opacity = Math.min(1, Math.max(0, -_recDrag.dx / REC_SWIPE_THRESH));
+  }
+  function end() {
+    if (!_recDrag) return;
+    const dx = _recDrag.dx;
+    _recDrag = null;
+    if (Math.abs(dx) >= REC_SWIPE_THRESH) {
+      _recSwipe(dx > 0 ? 'like' : 'nope');
+    } else {
+      top.classList.add('snapping');
+      top.style.transform = '';
+      const likeOv = top.querySelector('.rec-swipe-ov-like');
+      const nopeOv = top.querySelector('.rec-swipe-ov-nope');
+      if (likeOv) likeOv.style.opacity = 0;
+      if (nopeOv) nopeOv.style.opacity = 0;
+    }
+  }
+
+  top.addEventListener('touchstart', start, { passive: true });
+  top.addEventListener('touchmove', move, { passive: false });
+  top.addEventListener('touchend', end);
+  top.addEventListener('mousedown', start);
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', end, { once: true });
+}
+
+function _recPreview(btn) {
+  const isPlaying = btn.classList.contains('playing');
+  document.querySelectorAll('.rec-swipe-btn.playing').forEach(b => { b.innerHTML = '▶ Preview'; b.classList.remove('playing'); });
+  if (!isPlaying) { btn.innerHTML = '⏸ Playing…'; btn.classList.add('playing'); }
+}
+function _recFav(btn, title, img, tier) {
+  const saved = btn.classList.contains('saved');
+  btn.innerHTML = saved ? '♡ Save' : '♥ Saved';
+  btn.classList.toggle('saved', !saved);
+  if (!saved) { if (!_favs.find(f => f.title === title)) _favs.push({ title, img, tier }); }
+  else { _favs = _favs.filter(f => f.title !== title); }
+}
+function _recAdd(btn, label) {
+  if (btn.classList.contains('added')) return;
+  btn.textContent = '✓ Added';
+  btn.classList.add('added');
+  const r = _recDeck[_recIdx];
+  if (r) {
+    if (r.phase === 'Sleep') _planAdds.Sleep = { title: r.title, img: r.img };
+    else if (r.phase === 'Unwind') _planAdds.Unwind.push({ title: r.title, img: r.img });
+    else if (r.phase === 'Sunrise Alarm') _planAdds['Sunrise Alarm'] = { title: r.title, img: r.img };
+  }
+  setTimeout(() => _recSwipe('like'), 400);
+}
+
+// ── GUIDANCE PAGE — Q2 + recommendation + customization on one screen ─────────
+
+function guidancePageHTML() {
+  const cfg = Q2[S.q1];
+  const optsHtml = cfg.opts.map((o, i) =>
+    `<button class="opt q2-opt" id="q2opt-${i}" onclick="pickQ2('${o.b}', ${i})">
+       <span class="opt-ico">${o.e}</span>${o.t}
+     </button>`
+  ).join('');
+  return `
+    <button class="back" onclick="goBack(sleepTabHTML())">← Back</button>
+    <div class="q-header">
+      <div class="q-title">${cfg.q}</div>
+      <div class="q-subtitle">${cfg.sub}</div>
+    </div>
+    <div class="opts" id="q2-opts">${optsHtml}</div>
+    <div id="rec-section"></div>
+  `;
+}
+
+function pickQ2(branch, selectedIdx) {
+  S.branch = branch;
+  // Highlight selected, dim others, lock all
+  document.querySelectorAll('.q2-opt').forEach((btn, i) => {
+    btn.classList.add(i === selectedIdx ? 'q2-selected' : 'q2-dimmed');
+    btn.disabled = true;
+  });
+  // Inject recommendation in-place
+  const recEl = document.getElementById('rec-section');
+  recEl.innerHTML = recContentHTML(branch);
+  setTimeout(() => {
+    recEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (branch === 'bedtime') initBedtimePicker();
+    if (branch === 'alarm') setTimeout(() => showAlarmCategory(getAlarmRec(), true), 150);
+  }, 80);
+}
+
+function recContentHTML(branch) {
+  const br = BRANCHES[branch];
+  return `
+    <div class="rec-reveal">
+      <div class="guide-card" style="background:${br.bg}; border-color:${br.border};">
+        <div class="guide-icon">${br.icon}</div>
+        <div class="guide-headline">${br.headline}</div>
+        <div class="guide-body">${br.guide}</div>
+      </div>
+      ${customizationHTML(br.customization, br.color)}
+      <button class="save-btn" style="background:${br.color};" onclick="saveRoutine(this)">
+        Save to my routine →
+      </button>
+    </div>
+  `;
+}
+
+// ── CUSTOMIZATION PANELS ──────────────────────────────────────────────────────
+
+function soundCarouselHTML(sounds, prefix, color) {
+  return sounds.map((s, i) => `
+    <div class="sound-card" id="${prefix}-${i}" onclick="selectSound('${prefix}', ${i}, '${color}')">
+      <div class="s-ico">${s.e}</div>
+      <div class="s-name">${s.n}</div>
+      <div class="s-wave"><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+  `).join('');
+}
+
+function segGroup(id, options, activeIdx) {
+  return `<div class="btn-group" id="${id}">
+    ${options.map((v, i) =>
+      `<button class="seg-btn${i === activeIdx ? ' active' : ''}" onclick="selectSeg('${id}', this)">${v}</button>`
+    ).join('')}
+  </div>`;
+}
+
+function customizationHTML(type, color) {
+  if (type === 'alarm') return `
+    <div class="customize-section">
+      <div class="cust-title">Let's dial it in</div>
+      <div class="cust-label">Sunrise duration</div>
+      ${segGroup('duration-group', ['10 min','15 min','20 min','30 min','45 min'], 2)}
+      <div class="cust-label">Sunrise brightness</div>
+      ${segGroup('brightness-group', ['Low','Medium','High'], 1)}
+      <div class="cust-label" style="margin-top:20px">What kind of alarm do you want?</div>
+      <div class="alarm-cats">
+        ${Object.entries(ALARM_CATS).map(([key, cat]) => {
+          const isRec = key === getAlarmRec();
+          return `<button class="alarm-cat-btn${isRec ? ' active' : ''}" data-cat="${key}" onclick="showAlarmCategory('${key}', ${isRec})">
+            ${cat.emoji} ${cat.label}${isRec ? '<span class="for-you-chip">✦ For you</span>' : ''}
+          </button>`;
+        }).join('')}
+      </div>
+      <div class="alarm-feed-wrap" id="alarm-feed-container"></div>
+    </div>`;
+
+  if (type === 'bedtime') {
+    const mins = [5,10,15,20,25,30,35,40,45,50,55,60];
+    const items = mins.map((m,i) =>
+      `<div class="picker-item" onclick="pickerTap(${i})">${m} min</div>`
+    ).join('');
+    return `
+    <div class="customize-section">
+      <div class="cust-title">Set your bedtime reminders</div>
+      <div class="cust-label">Remind me</div>
+      <div class="picker-wrap">
+        <div class="picker-highlight"></div>
+        <div class="picker-mask"></div>
+        <div class="picker-scroll" id="bedtime-picker">${items}</div>
+      </div>
+      <div class="picker-sublabel" id="picker-label">30 minutes before your target bedtime</div>
+      <div class="cust-label">Bedtime support</div>
+      <div class="toggle-card">
+        <div class="toggle-left">
+          <div class="toggle-ico">🕯️</div>
+          <div>
+            <div class="toggle-name">Turndown Service</div>
+            <div class="toggle-desc">Sound and light ease you in — your room starts glowing as a cue that it's time to start getting ready for bed.</div>
+          </div>
+        </div>
+        <div class="toggle-sw on" onclick="toggleSw(this)"><div class="toggle-k"></div></div>
+      </div>
+      <div class="toggle-card">
+        <div class="toggle-left">
+          <div class="toggle-ico">📱</div>
+          <div>
+            <div class="toggle-name">Bedtime Countdown</div>
+            <div class="toggle-desc">A live activity on your lock screen keeps bedtime top of mind — and lets you know when it's time to tuck your phone in.</div>
+          </div>
+        </div>
+        <div class="toggle-sw" onclick="toggleSw(this)"><div class="toggle-k"></div></div>
+      </div>
+    </div>`
+  }
+
+  if (type === 'winddown') return `
+    <div class="customize-section">
+      <div class="cust-title">Let's build your routine</div>
+      <div class="cust-label">Start winding down</div>
+      ${segGroup('winddown-group', ['20 min before bed','30 min before bed','45 min before bed'], 1)}
+      <div class="cust-label">What do you want to wind down with?</div>
+      <div class="sound-scroll">${soundCarouselHTML(SOUNDS_WIND, 'wind', color)}</div>
+    </div>`;
+
+  return `
+    <div class="customize-section">
+      <div class="cust-title">Let's find your sound</div>
+      <div class="cust-label">Pick a sleep sound</div>
+      <div class="sound-scroll">${soundCarouselHTML(SOUNDS_SLEEP, 'sleep', color)}</div>
+      <div class="cust-label">Volume</div>
+      ${segGroup('volume-group', ['Low','Medium','High'], 1)}
+    </div>`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+
+function selectSeg(groupId, btn) {
+  document.querySelectorAll(`#${groupId} .seg-btn`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function selectSound(prefix, idx, color) {
+  document.querySelectorAll(`[id^="${prefix}-"]`).forEach(card => {
+    card.classList.remove('playing');
+    card.style.borderColor = '';
+    card.style.background  = '';
+    card.querySelector('.s-wave').style.color = '';
+  });
+  const card = document.getElementById(`${prefix}-${idx}`);
+  card.classList.add('playing');
+  card.style.borderColor = color;
+  card.style.background  = hexRgba(color, 0.12);
+  card.querySelector('.s-wave').style.color = color;
+}
+
+function saveRoutine(btn) {
+  btn.textContent = '✓ Saved to your routine';
+  btn.style.background = '#3FD5C0';
+  btn.disabled = true;
+  const done = document.createElement('div');
+  done.className = 'done-card';
+  done.style.marginTop = '12px';
+  done.innerHTML = `
+    <div class="done-title">🎉 Your routine is taking shape</div>
+    <div class="done-sub">Check back tomorrow morning — we'll celebrate what you built and keep adding from there.</div>
+  `;
+  btn.insertAdjacentElement('afterend', done);
+  setTimeout(() => done.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+}
+
+// ── ALARM CARD FEED ───────────────────────────────────────────────────────────
+
+let alarmFeedIdx = 0;
+
+function getAlarmRec() {
+  return (S.q1 === 'great' || S.q1 === 'okay') ? 'musical' : 'nature';
+}
+
+function showAlarmCategory(key, isRec = false) {
+  document.querySelectorAll('.alarm-cat-btn').forEach(b => {
+    const bRec = b.dataset.cat === getAlarmRec();
+    b.classList.toggle('active', b.dataset.cat === key);
+    // keep the for-you chip visible regardless of active state
+    if (bRec && !b.querySelector('.for-you-chip')) {
+      b.innerHTML += '<span class="for-you-chip">✦ For you</span>';
+    }
+  });
+
+  let cards = ALARM_CATS[key].cards;
+  if (key === 'surprise') {
+    const all = Object.values(ALARM_CATS).flatMap(c => c.cards);
+    cards = [all[Math.floor(Math.random() * all.length)]];
+  }
+
+  alarmFeedIdx = 0;
+  const wrap = document.getElementById('alarm-feed-container');
+  wrap.innerHTML = alarmCardFeedHTML(cards, isRec);
+  renderSideDots(cards.length, 0);
+
+  const feed = document.getElementById('alarm-feed');
+  feed.addEventListener('scroll', () => {
+    alarmFeedIdx = Math.round(feed.scrollTop / 300);
+    renderSideDots(cards.length, alarmFeedIdx);
+  }, { passive: true });
+}
+
+function alarmCardFeedHTML(cards, isRec = false) {
+  const cardsHtml = cards.map((card, i) => `
+    <div class="alarm-card" style="background:${card.grad}">
+      <div class="ac-art">${card.art}</div>
+      <div class="ac-overlay"></div>
+      ${i === 0 && isRec ? '<div class="card-rec-tag">✦ Top pick for you</div>' : ''}
+      <div class="ac-side-dots" id="side-dots"></div>
+      <div class="ac-content">
+        <div class="ac-top">
+          <div class="ac-name">${card.name}</div>
+          <button class="ac-play" onclick="previewAlarm(this)">▶</button>
+        </div>
+        <div class="ac-paired">
+          <div class="ac-paired-dot"></div>Paired with ${card.paired}
+        </div>
+        <div class="ac-desc-row">
+          <div class="ac-desc">${card.desc}</div>
+          <button class="ac-heart" onclick="toggleHeart(this)">♡</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="alarm-feed" id="alarm-feed">${cardsHtml}</div>
+    <button class="alarm-select-btn visible" onclick="confirmAlarm(this)">Select →</button>
+  `;
+}
+
+function renderSideDots(total, active) {
+  document.querySelectorAll('.ac-side-dots').forEach(el => {
+    el.innerHTML = Array.from({length: total}, (_, i) =>
+      `<div class="ac-side-dot${i === active ? ' active' : ''}"></div>`
+    ).join('');
+  });
+}
+
+function previewAlarm(btn) {
+  const wasPlaying = btn.classList.contains('playing');
+  document.querySelectorAll('.ac-play').forEach(b => {
+    b.classList.remove('playing');
+    b.textContent = '▶';
+  });
+  if (!wasPlaying) {
+    btn.classList.add('playing');
+    btn.textContent = '■';
+  }
+}
+
+function toggleHeart(btn) {
+  btn.classList.toggle('liked');
+  btn.textContent = btn.classList.contains('liked') ? '♥' : '♡';
+}
+
+function confirmAlarm(btn) {
+  btn.textContent = '✓ Added to your routine';
+  btn.classList.add('selected');
+  btn.disabled = true;
+}
+
+// ── PICKER + TOGGLES ─────────────────────────────────────────────────────────
+
+const PICKER_MINS = [5,10,15,20,25,30,35,40,45,50,55,60];
+const PICKER_H    = 44;
+
+function initBedtimePicker() {
+  const scroll = document.getElementById('bedtime-picker');
+  if (!scroll) return;
+  scroll.scrollTop = 5 * PICKER_H; // default: 30 min
+
+  function update() {
+    const idx = Math.max(0, Math.min(PICKER_MINS.length - 1, Math.round(scroll.scrollTop / PICKER_H)));
+    document.querySelectorAll('.picker-item').forEach((el, i) => el.classList.toggle('selected', i === idx));
+    const lbl = document.getElementById('picker-label');
+    if (lbl) lbl.textContent = `${PICKER_MINS[idx]} minutes before your target bedtime`;
+  }
+
+  scroll.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
+function pickerTap(idx) {
+  const scroll = document.getElementById('bedtime-picker');
+  if (scroll) scroll.scrollTo({ top: idx * PICKER_H, behavior: 'smooth' });
+}
+
+function toggleSw(el) { el.classList.toggle('on'); }
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+const c = document.getElementById('content');
+const init = document.createElement('div');
+init.className = 'screen slide-in';
+init.innerHTML = sleepTabHTML();
+c.appendChild(init);
+</script>
+</body>
+</html>
