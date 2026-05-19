@@ -2359,7 +2359,7 @@ function routineCheckupHTML() {
     <button class="back" onclick="goBack(sleepTabHTML())">← Back</button>
     <div class="swipe-header">
       <div class="q-eyebrow">Routine check-up</div>
-      <div class="swipe-headline" id="swipe-headline">Last night's lineup</div>
+      <div id="checkup-headline"></div>
       <div class="swipe-dots" id="swipe-dots"></div>
     </div>
     <div class="swipe-stage" id="swipe-stage"></div>
@@ -2433,6 +2433,23 @@ function _renderStack() {
   if (btns) btns.style.display = _deckIdx < _deck.length ? 'flex' : 'none';
 }
 
+const CHECKUP_PHASE_EMOJI = { 'Bedtime': '🌙', 'Bedtime Playlist': '🎵', 'Rise Time': '☀️' };
+
+function _updateCheckupHeadline() {
+  const el = document.getElementById('checkup-headline');
+  if (!el) return;
+  if (_deckIdx >= _deck.length) { el.innerHTML = ''; return; }
+  const item = _deck[_deckIdx].item;
+  const emoji = CHECKUP_PHASE_EMOJI[item.phaseLabel] || '✦';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+      <span style="font-size:20px;line-height:1;">${emoji}</span>
+      <span style="font-size:18px;font-weight:700;line-height:1.3;">${item.phaseLabel}</span>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:8px;">${item.phaseTime} · Rate what played</div>
+  `;
+}
+
 function _updateDots() {
   const el = document.getElementById('swipe-dots');
   if (!el) return;
@@ -2444,6 +2461,7 @@ function _updateDots() {
     else if (n === _deckIdx) cls = 'active';
     return `<div class="swipe-dot ${cls}"></div>`;
   }).join('');
+  _updateCheckupHeadline();
 }
 
 function _initDrag() {
@@ -2836,7 +2854,7 @@ function _renderRecStack() {
   _updateRecCounter();
 }
 
-const PHASE_EMOJI = { 'Bedtime': '🌙', 'Bedtime Playlist': '📖', 'Rise Time': '☀️' };
+const PHASE_EMOJI = { 'Bedtime': '🌙', 'Bedtime Playlist': '🎵', 'Rise Time': '☀️' };
 
 function _updateRecContext() {
   const el = document.getElementById('rec-swipe-context');
