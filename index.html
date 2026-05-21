@@ -1238,6 +1238,21 @@ body {
 .admin-phase-count {
   font-size: 11px;
   color: var(--text-3);
+  flex: 1;
+}
+.admin-phase-toggle {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: var(--text-3);
+  font-size: 10px;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-phase-toggle:hover {
+  border-color: var(--teal);
+  color: var(--teal);
 }
 .admin-item {
   display: flex;
@@ -1879,26 +1894,34 @@ const PHASE_EXCLUDE_TAGS = {
 function computeRecs(item, verdict, chipTag) {
   const ptags = new Set(item.tags);
   const exclude = PHASE_EXCLUDE_TAGS[item.phase] || new Set();
-  let pool = REC_CATALOG.filter(c =>
+  // Use the full 395-item catalog so recommendations are drawn from the whole library
+  const source = (typeof FULL_CATALOG !== 'undefined' && FULL_CATALOG.length) ? FULL_CATALOG : REC_CATALOG;
+  let pool = source.filter(c =>
     c.phase === item.phase &&
     c.title !== item.title &&
     !c.tags.some(t => exclude.has(t))
   );
   pool = pool.map(c => ({ ...c, overlap: c.tags.filter(t => ptags.has(t)).length }));
   if (verdict === 'like') {
+    // Same theme first, then by tag overlap, with a small shuffle within tied groups for variety
     pool.sort((a, b) => {
       const sameA = a.theme === item.theme ? 1 : 0;
       const sameB = b.theme === item.theme ? 1 : 0;
       if (sameB - sameA !== 0) return sameB - sameA;
-      return b.overlap - a.overlap;
+      if (b.overlap !== a.overlap) return b.overlap - a.overlap;
+      return Math.random() - 0.5;
     });
   } else {
-    const themesInPhase = new Set(REC_CATALOG.filter(c => c.phase === item.phase).map(c => c.theme));
+    const themesInPhase = new Set(source.filter(c => c.phase === item.phase).map(c => c.theme));
     if (themesInPhase.size > 1) {
       pool = pool.filter(c => c.theme !== item.theme);
     }
     if (chipTag) pool = pool.filter(c => !c.tags.includes(chipTag));
-    pool.sort((a, b) => a.overlap - b.overlap);
+    // For dislike: prefer low overlap (different vibe), shuffle ties
+    pool.sort((a, b) => {
+      if (a.overlap !== b.overlap) return a.overlap - b.overlap;
+      return Math.random() - 0.5;
+    });
   }
   return pool.slice(0, 3);
 }
@@ -3921,6 +3944,9 @@ function _renderAdminPanel() {
         <div class="admin-phase-header">
           <span class="admin-phase-label">${phase}</span>
           <span class="admin-phase-count">${selectedCount} selected</span>
+          <button class="admin-phase-toggle" onclick="_toggleAllAdminPhase('${phase.replace(/'/g,"\\'")}')">
+            ${selectedCount === items.length ? 'Deselect all' : selectedCount === 0 ? 'Select all' : 'Deselect all'}
+          </button>
         </div>
         <div class="admin-phase-divider"></div>
         ${items.map(item => {
@@ -3938,6 +3964,18 @@ function _renderAdminPanel() {
       </div>`;
   }
   body.innerHTML = html;
+}
+
+function _toggleAllAdminPhase(phase) {
+  const items = ADMIN_CATALOG[phase];
+  const allSelected = items.every(i => _adminSelected.has(i.id));
+  if (allSelected) {
+    // deselect all but keep one (the first) so phase stays valid
+    items.slice(1).forEach(i => _adminSelected.delete(i.id));
+  } else {
+    items.forEach(i => _adminSelected.add(i.id));
+  }
+  _renderAdminPanel();
 }
 
 function _toggleAdminItem(id, phase) {
