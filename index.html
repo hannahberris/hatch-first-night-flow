@@ -1723,7 +1723,7 @@ const TAG_CHIPS = {
   'gentle-rise':     ['sonic',      "Built up too slowly"],
   cozy:              ['vibe',       "Wasn't in the mood for cozy"],
   serene:            ['vibe',       "Too calming"],
-  dreamy:            ['vibe',       "Story style wasn't my vibe"],
+  dreamy:            ['vibe',       "Too dreamy"],
   mysterious:        ['vibe',       "Too eerie"],
   uplifting:         ['vibe',       "Too upbeat for the moment"],
   playful:           ['vibe',       "Too playful"],
@@ -1780,14 +1780,20 @@ const THEME_CHIP_PRIORITY = {
   'ASMR':          ['sonic', 'sensory', 'vibe', 'outcome', 'engagement'],
 };
 
-function getChipsForItem(theme, tags) {
+const VOICE_LED_THEMES = new Set(['Stories', 'Meditations', 'Podcasts', 'ASMR']);
+
+function getChipsForItem(theme, tags, phase) {
   const priority = THEME_CHIP_PRIORITY[theme] || ['sonic', 'vibe', 'outcome', 'sensory', 'engagement'];
   const byCategory = {};
   for (const tag of tags) {
+    // Suppress background chip for alarms — nobody wants their alarm to be "more present"
+    if (tag === 'background' && phase === 'Sunrise Alarm') continue;
     if (tag === 'voice-led') {
       if (!byCategory.sonic) byCategory.sonic = [];
-      byCategory.sonic.push({ label: "Didn't like the narrator's voice", tag });
-      byCategory.sonic.push({ label: "I don't want a narrator", tag });
+      const label = VOICE_LED_THEMES.has(theme)
+        ? "Didn't like the narrator's voice"
+        : "I don't want a narrator";
+      byCategory.sonic.push({ label, tag });
       continue;
     }
     const entry = TAG_CHIPS[tag];
@@ -2601,7 +2607,7 @@ function _contentCardHTML(item) {
 }
 
 function _followupCardHTML(item) {
-  const chipObjs = getChipsForItem(item.theme, item.tags);
+  const chipObjs = getChipsForItem(item.theme, item.tags, item.phase);
   const themeQuestions = {
     'Sleep Sounds':  "What about the sound didn't work?",
     'Stories':       "What about the story didn't land?",
