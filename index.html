@@ -1337,6 +1337,63 @@ body {
   text-align: center;
   margin-top: 8px;
 }
+.admin-eval-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-2);
+  font: 600 13px 'Inter', system-ui;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: border-color .15s, color .15s;
+}
+.admin-eval-btn:hover { border-color: var(--teal); color: var(--teal); }
+/* Eval modal */
+.eval-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  z-index: 400; display: flex; align-items: flex-start; justify-content: center;
+  padding: 24px 16px; overflow-y: auto;
+}
+.eval-modal {
+  background: #0B1525; border: 1.5px solid var(--border);
+  border-radius: 16px; width: 100%; max-width: 680px;
+  display: flex; flex-direction: column; gap: 0;
+}
+.eval-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 14px; border-bottom: 1px solid var(--border);
+}
+.eval-modal-header h2 { font-size: 14px; font-weight: 700; color: var(--text-1); margin: 0; }
+.eval-modal-close {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-2); font-size: 16px;
+  width: 30px; height: 30px; display: flex; align-items: center;
+  justify-content: center; cursor: pointer;
+}
+.eval-modal-controls {
+  display: flex; gap: 8px; padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.eval-source-btn {
+  flex: 1; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border); background: transparent; color: var(--text-2);
+  transition: all .15s;
+}
+.eval-source-btn.active { background: rgba(63,213,192,.1); border-color: var(--teal); color: var(--teal); }
+.eval-copy-btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: none; background: var(--teal); color: #060D1A;
+}
+.eval-textarea {
+  width: 100%; box-sizing: border-box;
+  background: #060D1A; border: none; border-radius: 0 0 14px 14px;
+  color: #8BFCE0; font: 12px/1.6 'Menlo', monospace;
+  padding: 16px 20px; resize: none; min-height: 420px;
+  outline: none;
+}
+.eval-count { font-size: 11px; color: var(--text-3); padding: 8px 20px 0; }
 .admin-overlay {
   display: none;
   position: fixed;
@@ -1415,7 +1472,25 @@ body {
   </div>
   <div class="admin-footer">
     <button class="admin-apply" id="admin-apply-btn" onclick="applyAdmin()">Apply & restart flow</button>
+    <button class="admin-eval-btn" onclick="openEvalModal()">Export eval test cases</button>
     <div class="admin-hint">★ = Premium content · restarts from Sleep tab</div>
+  </div>
+</div>
+
+<!-- Eval modal -->
+<div id="eval-modal-backdrop" class="eval-modal-backdrop" style="display:none" onclick="if(event.target===this)closeEvalModal()">
+  <div class="eval-modal">
+    <div class="eval-modal-header">
+      <h2>Eval test cases</h2>
+      <button class="eval-modal-close" onclick="closeEvalModal()">✕</button>
+    </div>
+    <div class="eval-modal-controls">
+      <button class="eval-source-btn active" id="eval-src-active" onclick="setEvalSource('active')">Active items only</button>
+      <button class="eval-source-btn" id="eval-src-full" onclick="setEvalSource('full')">Full catalog sample</button>
+      <button class="eval-copy-btn" onclick="copyEvalCases()">Copy all</button>
+    </div>
+    <div class="eval-count" id="eval-count"></div>
+    <textarea class="eval-textarea" id="eval-output" readonly></textarea>
   </div>
 </div>
 
@@ -4026,6 +4101,106 @@ function applyAdmin() {
   }
   toggleAdmin();
   resetFlow();
+}
+
+// ── EVAL HARNESS ──────────────────────────────────────────────────────────────
+
+let _evalSource = 'active';
+
+function openEvalModal() {
+  document.getElementById('eval-modal-backdrop').style.display = 'flex';
+  _renderEvalCases();
+}
+function closeEvalModal() {
+  document.getElementById('eval-modal-backdrop').style.display = 'none';
+}
+function setEvalSource(src) {
+  _evalSource = src;
+  document.getElementById('eval-src-active').classList.toggle('active', src === 'active');
+  document.getElementById('eval-src-full').classList.toggle('active', src === 'full');
+  _renderEvalCases();
+}
+function copyEvalCases() {
+  const ta = document.getElementById('eval-output');
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.querySelector('.eval-copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy all', 1800);
+  });
+}
+
+function _evalFormatTags(tags) {
+  return '[' + tags.join(', ') + ']';
+}
+
+function _evalFormatRec(rank, item) {
+  if (!item) return `  ${rank}. (no result)`;
+  return `  ${rank}. ${item.title} | phase: ${item.phase} | theme: ${item.theme || '—'} | tags: ${_evalFormatTags(item.tags || [])}`;
+}
+
+function _buildEvalCase(item, verdict, chipTag, chipLabel) {
+  const recs = computeRecs(item, verdict, chipTag);
+  const lines = [];
+  lines.push(`content_played:`);
+  lines.push(`  title: ${item.title}`);
+  lines.push(`  phase: ${item.phase}`);
+  lines.push(`  theme: ${item.theme || '—'}`);
+  lines.push(`  tags: ${_evalFormatTags(item.tags || [])}`);
+  lines.push('');
+  lines.push(`feedback:`);
+  lines.push(`  direction: ${verdict}`);
+  lines.push(`  chip_tag: ${chipTag || 'null'}`);
+  lines.push(`  chip_label: "${chipLabel || '(skipped)'}"`);
+  lines.push('');
+  lines.push(`recommendations:`);
+  recs.forEach((r, i) => lines.push(_evalFormatRec(i + 1, r)));
+  if (recs.length === 0) lines.push('  (none returned)');
+  return lines.join('\n');
+}
+
+function _renderEvalCases() {
+  // Choose source items
+  let sourceItems;
+  if (_evalSource === 'active') {
+    sourceItems = CHECKUP_ITEMS;
+  } else {
+    // Sample: up to 5 items per phase, picking ones with the most tags for richer test cases
+    const byPhase = {};
+    FULL_CATALOG.forEach(i => {
+      if (!byPhase[i.phase]) byPhase[i.phase] = [];
+      byPhase[i.phase].push(i);
+    });
+    sourceItems = [];
+    Object.values(byPhase).forEach(items => {
+      const sorted = [...items].sort((a, b) => (b.tags||[]).length - (a.tags||[]).length);
+      sourceItems.push(...sorted.slice(0, 5));
+    });
+  }
+
+  const cases = [];
+  sourceItems.forEach(item => {
+    const proxyItem = {
+      ...item,
+      image: item.image || item.img,
+    };
+
+    // No chip (skip) — like and dislike
+    cases.push(_buildEvalCase(proxyItem, 'like', null, null));
+    cases.push(_buildEvalCase(proxyItem, 'dislike', null, null));
+
+    // Each chip the item would actually show — for both verdicts
+    const chips = getChipsForItem(item.theme, item.tags || [], item.phase);
+    chips.forEach(chip => {
+      cases.push(_buildEvalCase(proxyItem, 'like', chip.tag, chip.label));
+      cases.push(_buildEvalCase(proxyItem, 'dislike', chip.tag, chip.label));
+    });
+  });
+
+  const separator = '\n\n' + '─'.repeat(60) + '\n\n';
+  const output = cases.join(separator);
+  document.getElementById('eval-output').value = output;
+  document.getElementById('eval-count').textContent =
+    `${cases.length} test cases across ${sourceItems.length} items`;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
